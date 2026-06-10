@@ -1,6 +1,6 @@
 ﻿using OperPageLes.UI.UserElementsControl.Network;
-using OPLAnimation.CORE.Animation;
-using OPLAnimation.CORE.Interfaces;
+using OPLAPI.CORE.Animation;
+using OPLAPI.CORE.Interfaces;
 using OPLAPI.OIEL.CORE.Network;
 using OPLAPI.OIEL.UserElementsControl.Base;
 using System.Windows;
@@ -11,7 +11,7 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
     /// <summary>
     /// Логика взаимодействия для OPLNetworkMessage.xaml
     /// </summary>
-    public partial class OPLNetworkMessage : OPLNetworkElementViewerBase, IOPLAnimate
+    public partial class OPLNetworkMessage : OPLNetworkElementViewerBase
     {
         #region Properties
 
@@ -68,11 +68,6 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
         /// Панель отображающая прикреплённые элементы к сообщению
         /// </summary>
         public StackPanel StackPanelClip { get; private set; }
-
-        /// <summary>
-        /// Объект менеджера анимаций настроек OPL
-        /// </summary>
-        public OPLAnimationManager? ManagerAnimation { get; set; }
 
         public OPLNetworkMessage()
         {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Animation;
 
-namespace OPLAnimation.CORE.Animation
+namespace OPLAPI.CORE.Animation
 {
     /// <summary>
     /// Базовый класс анимационного элемента программы

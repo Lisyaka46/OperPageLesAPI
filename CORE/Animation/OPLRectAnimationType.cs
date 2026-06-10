@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Animation;
 
-namespace OPLAnimation.CORE.Animation
+namespace OPLAPI.CORE.Animation
 {
     internal class OPLRectAnimationType<T> : OPLAnimationTypeBase where T : RectAnimation
     {

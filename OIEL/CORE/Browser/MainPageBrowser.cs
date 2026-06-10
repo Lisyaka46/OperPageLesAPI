@@ -1,28 +1,23 @@
-﻿using OPLAnimation.CORE.Animation;
-using OPLAnimation.CORE.Interfaces;
+﻿using OPLAPI.CORE.Animation;
+using OPLAPI.CORE.Interfaces;
 using OPLAPI.OIEL.CORE.Interfaces.Browser;
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
 
 namespace OPLAPI.OIEL.CORE.Browser
 {
-    public class MainPageBrowser : PageBrowser, IMainPageBrowser, IOPLAnimate
+    public class MainPageBrowser : PageBrowser, IMainPageBrowser
     {
         #region Data
         /// <summary>
-        /// Объект менеджера анимаций настроек OPL
-        /// </summary>
-        public OPLAnimationManager? ManagerAnimation { get; set; }
-
-        /// <summary>
         /// Массив всех страничных приложений подключённых к начальной странице
         /// </summary>
-        private List<ApplicationPage> SourceAppPages;
+        private List<ApplicationPage> SourceAppPages = [];
 
         /// <summary>
         /// Массив всех страничных приложений доступный только для чтения
         /// </summary>
-        internal ReadOnlyCollection<ApplicationPage> AppPages => SourceAppPages.AsReadOnly();
+        ReadOnlyCollection<ApplicationPage> IMainPageBrowser.AppPages => SourceAppPages.AsReadOnly();
         #endregion
 
         #region ElementsApp

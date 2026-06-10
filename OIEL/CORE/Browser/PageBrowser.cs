@@ -1,7 +1,8 @@
-﻿using IEL.UserElementsControl.Base;
+﻿using IEL.UserElementsControl;
+using IEL.UserElementsControl.Base;
+using OPLAPI.CORE.Animation;
+using OPLAPI.CORE.Interfaces;
 using OPLAPI.OIEL.CORE.Interfaces.Browser;
-using OPLAnimation.CORE.Animation;
-using OPLAnimation.CORE.Interfaces;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -10,7 +11,7 @@ namespace OPLAPI.OIEL.CORE.Browser
     /// <summary>
     /// Класс отображаемой страницы в браузере
     /// </summary>
-    public class PageBrowser : Page, IPageBrowser, IOPLAnimate
+    public class PageBrowser : Page, IPageBrowser
     {
         #region Title
         /// <summary>
@@ -55,9 +56,14 @@ namespace OPLAPI.OIEL.CORE.Browser
         #endregion
 
         /// <summary>
+        /// Объект панели действий подключаемый к контенту страницы браузера OPL
+        /// </summary>
+        public IELPanelAction? SourcePanelAction { get; set; }
+
+        /// <summary>
         /// Данные менеджера анимаций
         /// </summary>
-        protected OPLAnimationManager? SourceManagerAnimation;
+        private OPLAnimationManager? SourceManagerAnimation;
         /// <summary>
         /// Объект менеджера анимаций настроек OPL
         /// </summary>

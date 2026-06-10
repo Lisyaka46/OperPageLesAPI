@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Media.Animation;
 
-namespace OPLAnimation.CORE.Animation
+namespace OPLAPI.CORE.Animation
 {
     internal class OPLDoubleAnimationType<T> : OPLAnimationTypeBase where T : DoubleAnimation
     {

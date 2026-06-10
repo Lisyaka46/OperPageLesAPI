@@ -2,8 +2,8 @@
 using IEL.UserElementsControl;
 using IEL.UserElementsControl.Base;
 using OPLAPI.OIEL.CORE.Browser;
-using OPLAnimation.CORE.Animation;
-using OPLAnimation.CORE.Interfaces;
+using OPLAPI.CORE.Animation;
+using OPLAPI.CORE.Interfaces;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,7 +17,7 @@ using FontFamily = System.Windows.Media.FontFamily;
 namespace OPLAPI.OIEL.UserElementsControl
 {
     /// <summary>
-    /// Логика взаимодействия для OPLBrowserPage.xaml
+    /// Объект реализующий отображение PageBrowser
     /// </summary>
     public partial class OPLBrowserPage : System.Windows.Controls.UserControl, IOPLAnimate
     {

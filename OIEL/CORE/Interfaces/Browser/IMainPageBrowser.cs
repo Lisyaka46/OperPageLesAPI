@@ -1,10 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using OperPageLes.CORE.Interfaces;
+using OPLAPI.OIEL.CORE.Browser;
+using System.Collections.ObjectModel;
 
 namespace OPLAPI.OIEL.CORE.Interfaces.Browser
 {
-    internal interface IMainPageBrowser
+    /// <summary>
+    /// Интерфейс объекта контента главной страницы браузера OPL
+    /// </summary>
+    /// <remarks>
+    /// Интерфейс реализует базовая страница браузера, предоставляя контейнер для выбора открываемого страничного приложения
+    /// </remarks>
+    internal interface IMainPageBrowser : IPageBrowser, IOPLElementBaseContent
     {
+        /// <summary>
+        /// Массив всех страничных приложений доступный только для чтения
+        /// </summary>
+        internal abstract ReadOnlyCollection<ApplicationPage> AppPages { get; }
     }
 }

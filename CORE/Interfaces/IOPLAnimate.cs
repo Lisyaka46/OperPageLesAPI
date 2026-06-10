@@ -1,9 +1,6 @@
-﻿using OPLAnimation.CORE.Animation;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using OPLAPI.CORE.Animation;
 
-namespace OPLAnimation.CORE.Interfaces
+namespace OPLAPI.CORE.Interfaces
 {
     /// <summary>
     /// Интерфейс объекта реализующего настройку менеджера анимаций OPL
@@ -13,6 +10,6 @@ namespace OPLAnimation.CORE.Interfaces
         /// <summary>
         /// Объект менеджера анимаций настроек OPL
         /// </summary>
-        protected OPLAnimationManager? ManagerAnimation { get; set; }
+        public abstract OPLAnimationManager? ManagerAnimation { get; protected set; }
     }
 }

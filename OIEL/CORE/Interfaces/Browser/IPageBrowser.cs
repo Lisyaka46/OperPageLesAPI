@@ -1,9 +1,12 @@
-﻿namespace OPLAPI.OIEL.CORE.Interfaces.Browser
+﻿using OperPageLes.CORE.Interfaces;
+using OPLAPI.CORE.Interfaces;
+
+namespace OPLAPI.OIEL.CORE.Interfaces.Browser
 {
     /// <summary>
     /// Интерфейс элемента браузера страниц
     /// </summary>
-    public interface IPageBrowser : IDisposable
+    public interface IPageBrowser : IDisposable, IOPLElementBaseContent, IOPLAnimate
     {
         /// <summary>
         /// Делегат обычного события реализуемое браузером

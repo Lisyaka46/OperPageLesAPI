@@ -1,7 +1,7 @@
 ﻿using IEL.UserElementsControl.Base;
 using Newtonsoft.Json.Linq;
-using OPLAnimation.CORE.Animation;
-using OPLAnimation.CORE.Interfaces;
+using OPLAPI.CORE.Animation;
+using OPLAPI.CORE.Interfaces;
 using System.Drawing;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -219,8 +219,7 @@ namespace OperPageLes.UI.UserElementsControl.Network
         /// <summary>
         /// Установить текущее значение для манипуляции
         /// </summary>
-        /// <param name="CurrentValue">Текущее значение</param>
-        /// <param name="MaxValue">Mаксимальное значение</param>
+        /// <param name="Value">Значение отображающее степень манипуляции где 0 это минимум, 1 максимум</param>
         [LoaderOptimization(LoaderOptimization.NotSpecified)]
         public void SetValueManipulate(double Value)
         {

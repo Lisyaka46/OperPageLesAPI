@@ -1,5 +1,5 @@
-﻿using OPLAnimation.CORE.Animation;
-using OPLAnimation.CORE.Interfaces;
+﻿using OPLAPI.CORE.Animation;
+using OPLAPI.CORE.Interfaces;
 using OPLAPI.OIEL.UserElementsControl.Base;
 using System.Windows;
 using System.Windows.Media;
@@ -9,7 +9,7 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
     /// <summary>
     /// Логика взаимодействия для OPLNetworkChat.xaml
     /// </summary>
-    public partial class OPLNetworkChat : OPLNetworkElementViewerBase, IOPLAnimate
+    public partial class OPLNetworkChat : OPLNetworkElementViewerBase
     {
 
         #region Properties
@@ -116,11 +116,6 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
         #endregion
 
         #endregion
-
-        /// <summary>
-        /// Объект менеджера анимационных настроек OPL
-        /// </summary>
-        public OPLAnimationManager? ManagerAnimation { get; set; }
 
         public OPLNetworkChat()
         {

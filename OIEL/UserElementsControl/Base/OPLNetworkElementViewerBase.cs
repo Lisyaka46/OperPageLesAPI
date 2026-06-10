@@ -1,4 +1,6 @@
 ﻿using IEL.UserElementsControl.Base;
+using OPLAPI.CORE.Animation;
+using OPLAPI.CORE.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,7 +10,10 @@ using System.Windows.Media;
 
 namespace OPLAPI.OIEL.UserElementsControl.Base
 {
-    public class OPLNetworkElementViewerBase : IELContainerBase
+    /// <summary>
+    /// Базовый класс реализации отображения элемента из интернета
+    /// </summary>
+    public class OPLNetworkElementViewerBase : IELContainerBase, IOPLAnimate
     {
         /// <summary>
         /// Главный контейнер элемента
@@ -164,6 +169,11 @@ namespace OPLAPI.OIEL.UserElementsControl.Base
         //#endregion
 
         #endregion
+
+        /// <summary>
+        /// Объект менеджера анимационных настроек OPL
+        /// </summary>
+        public OPLAnimationManager? ManagerAnimation { get; set; }
 
         public OPLNetworkElementViewerBase()
         {

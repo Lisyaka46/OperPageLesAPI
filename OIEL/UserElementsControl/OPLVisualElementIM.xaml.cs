@@ -1,7 +1,7 @@
 ﻿using IEL.CORE.Classes;
 using IEL.UserElementsControl.Base;
-using OPLAnimation.CORE.Animation;
-using OPLAnimation.CORE.Interfaces;
+using OPLAPI.CORE.Animation;
+using OPLAPI.CORE.Interfaces;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -200,7 +200,7 @@ namespace OPLAPI.OIEL.UserElementsControl
 
         #endregion
 
-        public OPLAnimationManager? SourceManagerAnimation;
+        private OPLAnimationManager? SourceManagerAnimation;
         /// <summary>
         /// Объект менеджера анимационных настроек OPL
         /// </summary>

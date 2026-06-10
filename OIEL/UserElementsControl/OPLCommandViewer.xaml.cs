@@ -1,6 +1,6 @@
 ﻿using IEL.UserElementsControl.Base;
-using OPLAnimation.CORE.Animation;
-using OPLAnimation.CORE.Interfaces;
+using OPLAPI.CORE.Animation;
+using OPLAPI.CORE.Interfaces;
 using OPLAPI.CORE;
 using OPLAPI.OIEL.UserElementsControl.Interfaces;
 using System.Windows;
