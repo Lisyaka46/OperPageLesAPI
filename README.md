@@ -1,4 +1,4 @@
-# OperPageLes API
+# OperPageLes API [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 Библиотека предоставляющая связь между программой/системой OperPageLes и вашим проектом.<br>
 В библиотеке реализованы объекты интерфейса, которые используются в OPL.<br>
 ___Их также можно добавить в ваш проект для единого интерфейса.___<br><br>
