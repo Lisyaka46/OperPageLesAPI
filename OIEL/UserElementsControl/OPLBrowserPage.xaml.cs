@@ -1,10 +1,12 @@
 ﻿using IEL.CORE.Classes;
 using IEL.UserElementsControl;
 using IEL.UserElementsControl.Base;
-using OPLAPI.OIEL.CORE.Browser;
 using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Interfaces;
+using OPLAPI.OIEL.CORE.Browser;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -268,15 +270,39 @@ namespace OPLAPI.OIEL.UserElementsControl
         public void AddNewAppPage(Type TypeAppPage, string NameAppPage, in PaletteSpectrum Spectrum, in ImageSource Icon)
         {
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
-            ApplicationPage Source = SourceManagerAppPage.AddNewAppPage(TypeAppPage, NameAppPage);
+            AppPage Source = SourceManagerAppPage.AddNewAppPage(TypeAppPage, NameAppPage);
             Source.VisualELement.PaletteElement = Spectrum;
             Source.VisualELement.Source = Icon;
             Source.ApplicationPageActivate += Source_ApplicationPageActivate;
         }
 
-        private void Source_ApplicationPageActivate(object? sender, ApplicationPage e)
+        /// <summary>
+        /// Добавить отображение иконки в менеджере приложений страниц
+        /// </summary>
+        /// <param name="PathFile">Директория установочного файла страничного приложения</param>
+        public void AddNewAppPage(string PathFile, in PaletteSpectrum Spectrum, in ImageSource Icon)
         {
-            PageBrowser? InicializeInlay = SearchAnyPageType(e.TypeBrowserAppPage);
+            if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
+            InstallableAppPage Source = SourceManagerAppPage.AddNewAppPage(PathFile);
+            Source.VisualELement.PaletteElement = Spectrum;
+            Source.VisualELement.Source = Icon;
+            Source.ApplicationPageActivate += Source_ApplicationPageActivate;
+        }
+
+        private void Source_ApplicationPageActivate(object? sender, AppPage e)
+        {
+            PageBrowser? InicializeInlay = SearchAnyPageType(e.TypePage);
+            if (InicializeInlay != null)
+                ActivateInlayInBrowserPage(InicializeInlay);
+            else
+            {
+                NewInicializedAppPage.Invoke(sender, InitAppPageFromType(in e));
+            }
+        }
+
+        private void Source_ApplicationPageActivate(object? sender, InstallableAppPage e)
+        {
+            PageBrowser? InicializeInlay = SearchAnyPageType(e.TypePage);
             if (InicializeInlay != null)
                 ActivateInlayInBrowserPage(InicializeInlay);
             else
@@ -288,10 +314,23 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// <summary>
         /// Инициализировать страницу по хранимому типу в иконке
         /// </summary>
-        /// <param name="Browser">Браузер страниц</param>
-        /// <param name="UIAppPage">Иконка хранимого типа приложения страницы</param>
-        /// <param name="Activate">Активировать созданную вкладку или нет</param>
-        private OPLInlay InitAppPageFromType(in ApplicationPage AppPage)
+        /// <param name="AppPage">Объект данных страничного приложения</param>
+        private OPLInlay InitAppPageFromType(in AppPage AppPage)
+        {
+            if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
+            PageBrowser ElementAppPage = SourceManagerAppPage.InitPageBrowserFromType(AppPage);
+            ElementAppPage.ManagerAnimation = ManagerAnimation;
+            return AddInlayPage(in ElementAppPage, AppPage.VisualELement.PaletteElement, true);
+            //CloseButtonInlay.MarginViewBox = new(0);
+            //CloseButtonInlay.PaletteElement = App.CurrentApp.ActiveThemeApplication[CORE.Enums.PaletteSpectrumEnum.Red];
+            //CloseButtonInlay.Source = StructDirectoryResources.GetResourceBitmap(nameof(OPRES.Cross));
+        }
+
+        /// <summary>
+        /// Инициализировать страницу по библиотеке DLL
+        /// </summary>
+        /// <param name="PathFile">Путь к файлу DLL</param>
+        private OPLInlay InitAppPageFromType(in InstallableAppPage AppPage)
         {
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
             PageBrowser ElementAppPage = SourceManagerAppPage.InitPageBrowserFromType(AppPage);

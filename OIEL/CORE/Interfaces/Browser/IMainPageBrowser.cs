@@ -15,6 +15,6 @@ namespace OPLAPI.OIEL.CORE.Interfaces.Browser
         /// <summary>
         /// Массив всех страничных приложений доступный только для чтения
         /// </summary>
-        internal abstract ReadOnlyCollection<ApplicationPage> AppPages { get; }
+        internal abstract ReadOnlyCollection<AppPage> AppPages { get; }
     }
 }

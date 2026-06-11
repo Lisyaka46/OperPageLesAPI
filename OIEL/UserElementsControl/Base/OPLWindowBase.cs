@@ -6,6 +6,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using Brush = System.Windows.Media.Brush;
 
 namespace OPLAPI.OIEL.UserElementsControl.Base
@@ -363,6 +365,25 @@ namespace OPLAPI.OIEL.UserElementsControl.Base
             OPLAnimationManager.AnimateTakingZeroFromTo(ManagerAnimation, this, OpacityProperty,
                 0d, 1d, TimeSpan.FromMilliseconds(1400d));
             base.ShowDialog();
+        }
+
+        /// <summary>
+        /// Анимировать эффект блюра - сигнализируя изменение
+        /// </summary>
+        /// <param name="SourceManagerAnimation">Передаваемый менеджер анимаций</param>
+        /// <param name="Effect">Объект эффекта анимации</param>
+        /// <param name="Power">Сила блюра при старте</param>
+        /// <param name="Duration">Количество миллисекунд для анимации</param>
+        /// <param name="EnterToOriginValue">Возвратиться к текущему значению</param>
+        public static void AnimateBlurEffect(OPLAnimationManager? SourceManagerAnimation, in BlurEffect Effect,
+            uint Power, double Duration = 700d, bool EnterToOriginValue = true)
+        {
+            if (EnterToOriginValue)
+                OPLAnimationManager.AnimateTakingZeroFromTo(SourceManagerAnimation, Effect, BlurEffect.RadiusProperty,
+                    (double)Power, 0d, TimeSpan.FromMilliseconds(Duration));
+            else
+                OPLAnimationManager.AnimateTakingZeroTo(SourceManagerAnimation, Effect, BlurEffect.RadiusProperty,
+                    (double)Power, TimeSpan.FromMilliseconds(Duration));
         }
     }
 }

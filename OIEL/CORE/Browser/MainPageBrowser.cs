@@ -1,23 +1,27 @@
 ﻿using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Interfaces;
 using OPLAPI.OIEL.CORE.Interfaces.Browser;
+using OPLAPI.OIEL.UserElementsControl;
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
 
 namespace OPLAPI.OIEL.CORE.Browser
 {
-    public class MainPageBrowser : PageBrowser, IMainPageBrowser
+    /// <summary>
+    /// Класс отображаемой главной страницы в браузере
+    /// </summary>
+    public abstract class MainPageBrowser : PageBrowser, IMainPageBrowser
     {
         #region Data
         /// <summary>
         /// Массив всех страничных приложений подключённых к начальной странице
         /// </summary>
-        private List<ApplicationPage> SourceAppPages = [];
+        private List<AppPage> SourceAppPages = [];
 
         /// <summary>
         /// Массив всех страничных приложений доступный только для чтения
         /// </summary>
-        ReadOnlyCollection<ApplicationPage> IMainPageBrowser.AppPages => SourceAppPages.AsReadOnly();
+        ReadOnlyCollection<AppPage> IMainPageBrowser.AppPages => SourceAppPages.AsReadOnly();
         #endregion
 
         #region ElementsApp
@@ -32,7 +36,11 @@ namespace OPLAPI.OIEL.CORE.Browser
         public readonly System.Windows.Size ConstSizeIconsAppPages;
         #endregion
 
-        public MainPageBrowser(System.Windows.Size SizeIcons) : base()
+        /// <summary>
+        /// Инициализировать базовый класс главной страницы браузера
+        /// </summary>
+        /// <param name="SizeIcons">Размер иконок в главной странице браузера</param>
+        protected MainPageBrowser(System.Windows.Size SizeIcons) : base()
         {
             SourceAppPages = [];
             ConstSizeIconsAppPages = SizeIcons;
@@ -43,38 +51,68 @@ namespace OPLAPI.OIEL.CORE.Browser
             };
         }
 
+        #region AppPageControl
         /// <summary>
         /// Добавить отображение иконки в менеджере приложений страниц
         /// </summary>
         /// <param name="TypeAppPage">Тип создаваемого приложения страницы</param>
         /// <param name="NameAppPage">Отображаемое имя</param>
-        public virtual ApplicationPage AddNewAppPage(Type TypeAppPage, string NameAppPage)
+        public virtual AppPage AddNewAppPage(Type TypeAppPage, string NameAppPage)
         {
-            ApplicationPage Source = new(TypeAppPage, NameAppPage);
+            AppPage Source = new(TypeAppPage, NameAppPage);
             SourceAppPages.Add(Source);
-            Source.VisualELement.ManagerAnimation = ManagerAnimation;
-            Source.VisualELement.Width = ConstSizeIconsAppPages.Width;
-            Source.VisualELement.Height = ConstSizeIconsAppPages.Height;
-            MainPanelAllApplicationPages.Children.Add(Source.VisualELement);
-            OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, Source.VisualELement, OpacityProperty,
-                1d, TimeSpan.FromMilliseconds(500d));
+            SetVisualInit(Source.VisualELement);
             return Source;
+        }
+
+        /// <summary>
+        /// Добавить отображение иконки в менеджере приложений страниц
+        /// </summary>
+        /// <param name="Path">Директория к установочному файлу страничного приложения</param>
+        public virtual InstallableAppPage AddNewAppPage(string Path)
+        {
+            InstallableAppPage Source = new(Path);
+            SourceAppPages.Add(Source);
+            SetVisualInit(Source.VisualELement);
+            return Source;
+        }
+
+        /// <summary>
+        /// Установить начальные значения для визуального элемента страничного приложения
+        /// </summary>
+        /// <param name="VisualAppPage">Визуальный элемент страничного приложения</param>
+        private void SetVisualInit(OPLVisualElementIM VisualAppPage)
+        {
+            VisualAppPage.ManagerAnimation = ManagerAnimation;
+            VisualAppPage.Width = ConstSizeIconsAppPages.Width;
+            VisualAppPage.Height = ConstSizeIconsAppPages.Height;
+            MainPanelAllApplicationPages.Children.Add(VisualAppPage);
+            OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, VisualAppPage, OpacityProperty,
+                1d, TimeSpan.FromMilliseconds(500d));
         }
 
         /// <summary>
         /// Инициализировать страницу по хранимому типу в иконке
         /// </summary>
         /// <param name="AppPage">Объект страничного приложения</param>
-        internal PageBrowser InitPageBrowserFromType(in ApplicationPage AppPage)
+        internal PageBrowser InitPageBrowserFromType(in AppPage AppPage)
         {
-            PageBrowser ElementAppPage = (PageBrowser)(Activator.CreateInstance(AppPage.TypeBrowserAppPage) ??
-                throw new Exception("Не удалось создать объект приложения страницы"));
-            ElementAppPage.Title = AppPage.Name;
+            PageBrowser ElementAppPage = (PageBrowser)(Activator.CreateInstance(AppPage.TypePage) ??
+                throw new Exception("Не удалось создать объект страничного приложения"));
+            ElementAppPage.Title = AppPage.TitlePage;
             return ElementAppPage;
-            //IELButtonImage CloseButtonInlay = App.CurrentApp.MainBrowser.AddInlayPage(in ElementAppPage, AppPage.VisualELement.PaletteElement, true).GetButtonCloseInlay();
-            //CloseButtonInlay.MarginViewBox = new(0);
-            //CloseButtonInlay.PaletteElement = App.CurrentApp.ActiveThemeApplication[CORE.Enums.PaletteSpectrumEnum.Red];
-            //CloseButtonInlay.Source = StructDirectoryResources.GetResourceBitmap(nameof(OPRES.Cross));
         }
+
+        /// <summary>
+        /// Инициализировать страницу по хранимому типу в иконке
+        /// </summary>
+        /// <param name="AppPage">Объект страничного приложения</param>
+        internal PageBrowser InitPageBrowserFromType(in InstallableAppPage AppPage)
+        {
+            PageBrowser ElementAppPage = AppPage.InicializeAppPage();
+            ElementAppPage.Title = AppPage.TitlePage;
+            return ElementAppPage;
+        }
+        #endregion
     }
 }

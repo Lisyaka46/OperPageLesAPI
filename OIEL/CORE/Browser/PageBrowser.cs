@@ -11,7 +11,7 @@ namespace OPLAPI.OIEL.CORE.Browser
     /// <summary>
     /// Класс отображаемой страницы в браузере
     /// </summary>
-    public class PageBrowser : Page, IPageBrowser
+    public abstract class PageBrowser : Page, IPageBrowser
     {
         #region Title
         /// <summary>
