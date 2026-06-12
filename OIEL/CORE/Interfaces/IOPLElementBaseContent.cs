@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OperPageLes.CORE.Interfaces
+namespace OPLAPI.OIEL.CORE.Interfaces
 {
     /// <summary>
     /// Интерфейс объекта реализующий настройку использования базовых элементов интерфейса OPL

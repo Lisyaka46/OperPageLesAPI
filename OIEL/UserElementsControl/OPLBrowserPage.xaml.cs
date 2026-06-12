@@ -267,12 +267,10 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// Добавить отображение иконки в менеджере приложений страниц
         /// </summary>
         /// <param name="TypeAppPage">Тип создаваемого приложения страницы</param>
-        public void AddNewAppPage(Type TypeAppPage, string NameAppPage, in PaletteSpectrum Spectrum, in ImageSource Icon)
+        public void AddNewAppPage(Type TypeAppPage)
         {
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
-            AppPage Source = SourceManagerAppPage.AddNewAppPage(TypeAppPage, NameAppPage);
-            Source.VisualELement.PaletteElement = Spectrum;
-            Source.VisualELement.Source = Icon;
+            AppPage Source = SourceManagerAppPage.AddNewAppPage(TypeAppPage);
             Source.ApplicationPageActivate += Source_ApplicationPageActivate;
         }
 
@@ -280,12 +278,10 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// Добавить отображение иконки в менеджере приложений страниц
         /// </summary>
         /// <param name="PathFile">Директория установочного файла страничного приложения</param>
-        public void AddNewAppPage(string PathFile, in PaletteSpectrum Spectrum, in ImageSource Icon)
+        public void AddNewAppPage(string PathFile)
         {
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
             InstallableAppPage Source = SourceManagerAppPage.AddNewAppPage(PathFile);
-            Source.VisualELement.PaletteElement = Spectrum;
-            Source.VisualELement.Source = Icon;
             Source.ApplicationPageActivate += Source_ApplicationPageActivate;
         }
 
@@ -315,30 +311,12 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// Инициализировать страницу по хранимому типу в иконке
         /// </summary>
         /// <param name="AppPage">Объект данных страничного приложения</param>
-        private OPLInlay InitAppPageFromType(in AppPage AppPage)
+        private OPLInlay InitAppPageFromType<T>(in T AppPage) where T : AppPage
         {
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
-            PageBrowser ElementAppPage = SourceManagerAppPage.InitPageBrowserFromType(AppPage);
+            PageBrowser ElementAppPage = MainPageBrowser.InitPageBrowserFromType(AppPage);
             ElementAppPage.ManagerAnimation = ManagerAnimation;
             return AddInlayPage(in ElementAppPage, AppPage.VisualELement.PaletteElement, true);
-            //CloseButtonInlay.MarginViewBox = new(0);
-            //CloseButtonInlay.PaletteElement = App.CurrentApp.ActiveThemeApplication[CORE.Enums.PaletteSpectrumEnum.Red];
-            //CloseButtonInlay.Source = StructDirectoryResources.GetResourceBitmap(nameof(OPRES.Cross));
-        }
-
-        /// <summary>
-        /// Инициализировать страницу по библиотеке DLL
-        /// </summary>
-        /// <param name="PathFile">Путь к файлу DLL</param>
-        private OPLInlay InitAppPageFromType(in InstallableAppPage AppPage)
-        {
-            if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
-            PageBrowser ElementAppPage = SourceManagerAppPage.InitPageBrowserFromType(AppPage);
-            ElementAppPage.ManagerAnimation = ManagerAnimation;
-            return AddInlayPage(in ElementAppPage, AppPage.VisualELement.PaletteElement, true);
-            //CloseButtonInlay.MarginViewBox = new(0);
-            //CloseButtonInlay.PaletteElement = App.CurrentApp.ActiveThemeApplication[CORE.Enums.PaletteSpectrumEnum.Red];
-            //CloseButtonInlay.Source = StructDirectoryResources.GetResourceBitmap(nameof(OPRES.Cross));
         }
         #endregion
 

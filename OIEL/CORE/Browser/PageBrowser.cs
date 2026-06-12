@@ -5,6 +5,7 @@ using OPLAPI.CORE.Interfaces;
 using OPLAPI.OIEL.CORE.Interfaces.Browser;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace OPLAPI.OIEL.CORE.Browser
 {
@@ -13,6 +14,8 @@ namespace OPLAPI.OIEL.CORE.Browser
     /// </summary>
     public abstract class PageBrowser : Page, IPageBrowser
     {
+        #region Properties
+
         #region Title
         /// <summary>
         /// Данные конкретного свойства
@@ -53,6 +56,29 @@ namespace OPLAPI.OIEL.CORE.Browser
             get => (string)GetValue(DescriptionProperty);
             set => SetValue(DescriptionProperty, value);
         }
+        #endregion
+
+        #region Icon
+        /// <summary>
+        /// Данные конкретного свойства
+        /// </summary>
+        public static readonly DependencyProperty IconProperty =
+            DependencyProperty.Register("Icon", typeof(ImageSource), typeof(PageBrowser),
+                new(null,
+                    (sender, e) =>
+                    {
+                    }));
+
+        /// <summary>
+        /// Иконка страницы
+        /// </summary>
+        public ImageSource Icon
+        {
+            get => (ImageSource)GetValue(IconProperty);
+            set => SetValue(IconProperty, value);
+        }
+        #endregion
+
         #endregion
 
         /// <summary>

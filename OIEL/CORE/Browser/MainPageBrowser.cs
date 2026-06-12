@@ -4,6 +4,7 @@ using OPLAPI.OIEL.CORE.Interfaces.Browser;
 using OPLAPI.OIEL.UserElementsControl;
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace OPLAPI.OIEL.CORE.Browser
 {
@@ -22,6 +23,11 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// Массив всех страничных приложений доступный только для чтения
         /// </summary>
         ReadOnlyCollection<AppPage> IMainPageBrowser.AppPages => SourceAppPages.AsReadOnly();
+
+        /// <summary>
+        /// Иконка по умолчанию для страничных приложений
+        /// </summary>
+        protected ImageSource? DefaultIconAppPage { get; set; }
         #endregion
 
         #region ElementsApp
@@ -57,9 +63,11 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// </summary>
         /// <param name="TypeAppPage">Тип создаваемого приложения страницы</param>
         /// <param name="NameAppPage">Отображаемое имя</param>
-        public virtual AppPage AddNewAppPage(Type TypeAppPage, string NameAppPage)
+        public virtual AppPage AddNewAppPage(Type TypeAppPage)
         {
-            AppPage Source = new(TypeAppPage, NameAppPage);
+            AppPage Source = new(TypeAppPage);
+            if (DefaultIconAppPage != null && Source.VisualELement.Source == null)
+                Source.VisualELement.Source = DefaultIconAppPage;
             SourceAppPages.Add(Source);
             SetVisualInit(Source.VisualELement);
             return Source;
@@ -69,9 +77,11 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// Добавить отображение иконки в менеджере приложений страниц
         /// </summary>
         /// <param name="Path">Директория к установочному файлу страничного приложения</param>
-        public virtual InstallableAppPage AddNewAppPage(string Path)
+        public InstallableAppPage AddNewAppPage(string Path)
         {
             InstallableAppPage Source = new(Path);
+            if (DefaultIconAppPage != null && Source.VisualELement.Source == null)
+                Source.VisualELement.Source = DefaultIconAppPage;
             SourceAppPages.Add(Source);
             SetVisualInit(Source.VisualELement);
             return Source;
@@ -95,19 +105,7 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// Инициализировать страницу по хранимому типу в иконке
         /// </summary>
         /// <param name="AppPage">Объект страничного приложения</param>
-        internal PageBrowser InitPageBrowserFromType(in AppPage AppPage)
-        {
-            PageBrowser ElementAppPage = (PageBrowser)(Activator.CreateInstance(AppPage.TypePage) ??
-                throw new Exception("Не удалось создать объект страничного приложения"));
-            ElementAppPage.Title = AppPage.TitlePage;
-            return ElementAppPage;
-        }
-
-        /// <summary>
-        /// Инициализировать страницу по хранимому типу в иконке
-        /// </summary>
-        /// <param name="AppPage">Объект страничного приложения</param>
-        internal PageBrowser InitPageBrowserFromType(in InstallableAppPage AppPage)
+        internal static PageBrowser InitPageBrowserFromType<T>(in T AppPage) where T : AppPage
         {
             PageBrowser ElementAppPage = AppPage.InicializeAppPage();
             ElementAppPage.Title = AppPage.TitlePage;

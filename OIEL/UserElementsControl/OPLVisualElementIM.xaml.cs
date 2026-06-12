@@ -113,9 +113,9 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// <summary>
         /// Ссылка на элемент изображения
         /// </summary>
-        public ImageSource Source
+        public ImageSource? Source
         {
-            get => (ImageSource)GetValue(SourceProperty);
+            get => (ImageSource?)GetValue(SourceProperty);
             set => SetValue(SourceProperty, value);
         }
         #endregion

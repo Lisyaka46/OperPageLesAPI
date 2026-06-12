@@ -6,23 +6,19 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Windows;
+using System.Windows.Media;
 
 namespace OPLAPI.OIEL.CORE.Browser
 {
     /// <summary>
-    /// Класс устанавливаемого страничного приложения в OPL
+    /// Класс устанавливаемого страничного приложения
     /// </summary>
     public sealed class InstallableAppPage : AppPage
     {
         /// <summary>
-        /// Название страничного приложения
+        /// Сборка страничного рпиложения
         /// </summary>
-        public override string TitlePage { get; protected set; }
-
-        /// <summary>
-        /// Директория к файлу .dll страничного приложения
-        /// </summary>
-        private string PathFileAppPage;
+        private Assembly AssemblyPage;
 
         /// <summary>
         /// Событие активации страничного приложения
@@ -32,36 +28,24 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// <summary>
         /// Инициализировать данные о страничном приложении
         /// </summary>
+        /// <remarks>
+        /// Установочный файл должен быть файлом .dll, который содержит в себе тип, наследуемый от PageBrowser.<br/>
+        /// Он будет являться главной страницей страничного приложения.<br/>
+        /// Свойства Title и Icon главной страницы будут использоваться для отображения информации об устанавливаемом страничном приложении в менеджере приложений страниц OPL.
+        /// </remarks>
         /// <param name="SourcePath">Директория к файлу станичного приложения .dll</param>
-        public InstallableAppPage(string SourcePath) : base(typeof(PageBrowser), "Неизвестный")
+        public InstallableAppPage(string SourcePath) : base()
         {
             if (!File.Exists(SourcePath) || !Path.GetExtension(SourcePath).Equals(".dll"))
                 throw new Exception("Данный файл не найден или его расширение не подходит под устанавливаемое страничное приложение .dll ...");
-            // Загружаем сборку
-            Assembly AssemblyPage = Assembly.LoadFrom(SourcePath);
 
-            // Получаем Type класса
-            object ElementPage = AssemblyPage.CreateInstance("AppPageExample.MainPage") ??
-                throw new Exception($"Неудалось создать экземпляр {typeof(OPLPageApplication).FullName}");
+            AssemblyPage = Assembly.LoadFrom(SourcePath);
+            Type[] AssemplyTypesPage = [.. AssemblyPage.ExportedTypes];
+            Type TypeMainPage = AssemplyTypesPage.FirstOrDefault((i) => i.BaseType == typeof(PageBrowser)) ??
+                throw new Exception("Неудалось получить тип главной страницы страничного приложения");
+            SetPropetriesFromObjectPage(TypeMainPage, AssemblyPage);
 
-            //PropertyInfo PropertyMainPage = ElementPage.GetType().GetProperty(nameof(OPLPageApplication.MainPage)) ??
-            //    throw new Exception("Не удалось получить свойство названия страничного приложения...");
-            //object Page = PropertyMainPage.GetValue(ElementPage) ??
-            //    throw new Exception("Не удалось получить объект отображения страничного приложения...");
-
-            TitlePage = ((PageBrowser)ElementPage).Title ?? "Неизвестный";
-            TypePage = ElementPage.GetType();
-            PathFileAppPage = SourcePath;
             VisualELement.OnActivateMouseLeft += (sender, e) => ApplicationPageActivate?.Invoke(VisualELement, this);
-            GC.KeepAlive(ElementPage);
         }
-
-        /// <summary>
-        /// Инициализировать страничное приложение
-        /// </summary>
-        internal PageBrowser InicializeAppPage() =>
-            (PageBrowser)((Assembly.LoadFrom(PathFileAppPage).CreateInstance("AppPageExample.MainPage") ??
-                throw new Exception($"Страничное приложение не наследует базовый класс отображения контента {typeof(PageBrowser).FullName}")) ??
-                throw new Exception("Не удалось создать элемент страничного приложения..."));
     }
 }

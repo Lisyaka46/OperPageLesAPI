@@ -1,5 +1,4 @@
-﻿using OperPageLes.CORE.Interfaces;
-using OPLAPI.CORE.Interfaces;
+﻿using OPLAPI.CORE.Interfaces;
 
 namespace OPLAPI.OIEL.CORE.Interfaces.Browser
 {
