@@ -62,7 +62,6 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// Добавить отображение иконки в менеджере приложений страниц
         /// </summary>
         /// <param name="TypeAppPage">Тип создаваемого приложения страницы</param>
-        /// <param name="NameAppPage">Отображаемое имя</param>
         public virtual AppPage AddNewAppPage(Type TypeAppPage)
         {
             AppPage Source = new(TypeAppPage);
@@ -96,9 +95,9 @@ namespace OPLAPI.OIEL.CORE.Browser
             VisualAppPage.ManagerAnimation = ManagerAnimation;
             VisualAppPage.Width = ConstSizeIconsAppPages.Width;
             VisualAppPage.Height = ConstSizeIconsAppPages.Height;
+            OPLAnimationManager.AnimateTakingZeroFromTo(ManagerAnimation, VisualAppPage, OpacityProperty,
+                0d, 1d, TimeSpan.FromMilliseconds(500d));
             MainPanelAllApplicationPages.Children.Add(VisualAppPage);
-            OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, VisualAppPage, OpacityProperty,
-                1d, TimeSpan.FromMilliseconds(500d));
         }
 
         /// <summary>
