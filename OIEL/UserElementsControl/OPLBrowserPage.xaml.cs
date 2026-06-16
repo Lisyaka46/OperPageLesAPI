@@ -206,8 +206,6 @@ namespace OPLAPI.OIEL.UserElementsControl
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
                 VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
             };
-            IELScrollViewerInlays.AutoUpdateVisibleHorizontalScroll = true;
-            IELScrollViewerInlays.AutoUpdateVisibleVerticalScroll = false;
             IELScrollViewerInlays.Content = StackPanelInlays;
             KeyUp += (sender, e) =>
             {
