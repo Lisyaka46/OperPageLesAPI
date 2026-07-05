@@ -1,17 +1,12 @@
 ﻿using IEL.CORE.Classes;
-using IEL.UserElementsControl;
-using IEL.UserElementsControl.Base;
 using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Interfaces;
 using OPLAPI.OIEL.CORE.Browser;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Brush = System.Windows.Media.Brush;
 using FontFamily = System.Windows.Media.FontFamily;
@@ -21,7 +16,7 @@ namespace OPLAPI.OIEL.UserElementsControl
     /// <summary>
     /// Объект реализующий отображение PageBrowser
     /// </summary>
-    public partial class OPLBrowserPage : System.Windows.Controls.UserControl, IOPLAnimate
+    public partial class OPLBrowserPage : UserControl, IOPLAnimate
     {
         /// <summary>
         /// Объект менеджера анимационных настроек OPL
@@ -256,16 +251,15 @@ namespace OPLAPI.OIEL.UserElementsControl
                 BorderInlays.Height = 55d;
                 ActivateCustomPage = false;
             }
-            MainPageController.NextPage(SourceManagerAppPage, false);
-            Keyboard.Focus(SourceManagerAppPage);
+            MainPageController.NextElement(SourceManagerAppPage, false);
             SourceManagerAppPage.Focus();
         }
 
         /// <summary>
-        /// Добавить отображение иконки в менеджере приложений страниц
+        /// Добавить страничное приложение в менеджер приложений страниц
         /// </summary>
         /// <param name="TypeAppPage">Тип создаваемого приложения страницы</param>
-        public void AddNewAppPage(Type TypeAppPage)
+        public async Task AddNewAppPage(Type TypeAppPage)
         {
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
             AppPage Source = SourceManagerAppPage.AddNewAppPage(TypeAppPage);
@@ -273,10 +267,10 @@ namespace OPLAPI.OIEL.UserElementsControl
         }
 
         /// <summary>
-        /// Добавить отображение иконки в менеджере приложений страниц
+        /// Установить и добавить страничное приложение в менеджер приложений страниц
         /// </summary>
         /// <param name="PathFile">Директория установочного файла страничного приложения</param>
-        public void AddNewAppPage(string PathFile)
+        public async Task AddNewAppPage(string PathFile)
         {
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
             InstallableAppPage Source = SourceManagerAppPage.AddNewAppPage(PathFile);
@@ -323,6 +317,7 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// Добавить новую страницу
         /// </summary>
         /// <param name="Content">Добавляемая страница в баузер страниц</param>
+        /// <param name="SpectrumInlay">Спетр цвета для отображения вкладки</param>
         /// <param name="Activate">Активировать сразу или нет страницу</param>
         public OPLInlay AddInlayPage(in PageBrowser Content, PaletteSpectrum SpectrumInlay, bool Activate = true)
         {
@@ -427,7 +422,7 @@ namespace OPLAPI.OIEL.UserElementsControl
             //SourceDoubleAnimation.To = 50d;
             //NextInlay.BeginAnimation(HeightProperty, SourceDoubleAnimation, HandoffBehavior.SnapshotAndReplace);
             NextInlay.SourceBackground.SetUsedState(true);
-            MainPageController.NextPage(Page, index.Value >= ActivateIndex);
+            MainPageController.NextElement(Page, index.Value >= ActivateIndex);
             _ActivateIndex = index.Value;
             //Page.EventFocusPage?.Invoke(Page);
         }
@@ -462,7 +457,7 @@ namespace OPLAPI.OIEL.UserElementsControl
                     ActivateInlayIndex(_ActivateIndex);
                 }
                 else
-                    MainPageController.NextPage(HistoryBackPage, false);
+                    MainPageController.NextElement(HistoryBackPage, false);
                 HistoryBackPage = null;
             }
             else
@@ -488,29 +483,12 @@ namespace OPLAPI.OIEL.UserElementsControl
                 BorderInlays.Height = 0d;
                 ActivateCustomPage = true;
             }
-            MainPageController.NextPage(SourcePage, RightAlign);
-        }
-
-        /// <summary>
-        /// Сделать поиск страниц по типу
-        /// </summary>
-        /// <typeparam name="T">Тип страницы поиска</typeparam>
-        /// <returns>Найденные страницы</returns>
-        public T[]? SearchAllPageType<T>() where T : PageBrowser
-        {
-            if (InlaysCount == 0) return null;
-            List<T> values = [];
-            foreach (OPLInlay Inlay in SourceInlays)
-            {
-                if (Inlay.Content?.GetType() == typeof(T)) values.Add((T)Inlay.Content);
-            }
-            return values.Count == 0 ? null : [.. values];
+            MainPageController.NextElement(SourcePage, RightAlign);
         }
 
         /// <summary>
         /// Сделать поиск страницы по типу
         /// </summary>
-        /// <typeparam name="T">Тип страницы поиска</typeparam>
         /// <returns>Найденная страница</returns>
         public PageBrowser? SearchAnyPageType(Type SourceType)
         {
@@ -566,8 +544,8 @@ namespace OPLAPI.OIEL.UserElementsControl
                 {
                     if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
                     _ActivateIndex = -1;
-                    MainPageController.ClosePage();
-                    MainPageController.NextPage(SourceManagerAppPage, true);
+                    MainPageController.CloseElement();
+                    MainPageController.NextElement(SourceManagerAppPage, true);
                 }
                 else
                 {

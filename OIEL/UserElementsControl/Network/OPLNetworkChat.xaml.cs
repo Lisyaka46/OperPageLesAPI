@@ -87,7 +87,7 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
             get => (int)GetValue(TextCountProperty);
             set
             {
-                TextBlockCountFiles.Text = value > 0 ? value.ToString() : string.Empty;
+                TextBlockCountElements.Text = value > 0 ? value.ToString() : string.Empty;
                 SetValue(TextCountProperty, value);
             }
         }
@@ -124,11 +124,11 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
             TextBlockEndMessage.Text = string.Empty;
             ImageIconMessage.Width = 0d;
             ImageIconMessage.Opacity = 0d;
-            TextBlockCountFiles.Text = string.Empty;
+            TextBlockCountElements.Text = string.Empty;
 
             TextBlockHead.Foreground = SourceForeground.SourceBrush;
             TextBlockEndMessage.Foreground = SourceForeground.SourceBrush;
-            TextBlockCountFiles.Foreground = SourceForeground.SourceBrush;
+            TextBlockCountElements.Foreground = SourceForeground.SourceBrush;
         }
     }
 }

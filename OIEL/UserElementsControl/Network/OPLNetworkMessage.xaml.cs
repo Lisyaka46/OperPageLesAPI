@@ -1,6 +1,4 @@
-﻿using OperPageLes.UI.UserElementsControl.Network;
-using OPLAPI.CORE.Animation;
-using OPLAPI.CORE.Interfaces;
+﻿using OPLAPI.CORE.Animation;
 using OPLAPI.OIEL.CORE.Network;
 using OPLAPI.OIEL.UserElementsControl.Base;
 using System.Windows;
@@ -9,7 +7,7 @@ using System.Windows.Controls;
 namespace OPLAPI.OIEL.UserElementsControl.Network
 {
     /// <summary>
-    /// Логика взаимодействия для OPLNetworkMessage.xaml
+    /// Класс объекта отображающего сообщение в сети
     /// </summary>
     public partial class OPLNetworkMessage : OPLNetworkElementViewerBase
     {
@@ -64,17 +62,20 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
 
         #endregion
 
+        private StackPanel? _StackPanelClip = null;
         /// <summary>
         /// Панель отображающая прикреплённые элементы к сообщению
         /// </summary>
-        public StackPanel StackPanelClip { get; private set; }
+        public StackPanel StackPanelClip => _StackPanelClip ??= new();
 
+        /// <summary>
+        /// Инициализировать объект отображения сообщения в сети
+        /// </summary>
         public OPLNetworkMessage()
         {
             InitializeComponent();
             BorderClipElements.BorderThickness = new(0);
             TextBlockMessage.Text = string.Empty;
-            StackPanelClip = new();
             BorderClipElements.Child = StackPanelClip;
         }
 
@@ -82,7 +83,8 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
         /// Установить визуализацию объекта сообветственно данным
         /// </summary>
         /// <param name="NetworkInfo">Данные о передаваемых данных</param>
-        public void SetVisualFromNetworkInfo(DataNetworkInfo NetworkInfo, UIElementCollection? ClipCollection = null)
+        /// <param name="SourceClipCollection">Массив прикреплённых элементов</param>
+        public void SetVisualFromNetworkInfo(DataNetworkInfo NetworkInfo, UIElementCollection? SourceClipCollection = null)
         {
             //PaletteElement = App.CurrentApp.ActiveThemeApplication[PaletteSpectrumEnum.LightBlue];
             if (NetworkInfo.LengthMessage > 0)
@@ -98,14 +100,14 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
             }
             if (NetworkInfo.FilesInfo.Count > 0)
             {
-                OPLNetworkClipElement Element;
+                OPLVisualNetworkClipFile Element;
                 StackPanelClip.Children.Clear();
                 for (int i = 0; i < NetworkInfo.FilesInfo.Count; i++)
                 {
-                    if (ClipCollection != null)
+                    if (SourceClipCollection != null)
                     {
-                        Element = (OPLNetworkClipElement)ClipCollection[0];
-                        ClipCollection.RemoveAt(0);
+                        Element = (OPLVisualNetworkClipFile)SourceClipCollection[0];
+                        SourceClipCollection.RemoveAt(0);
                         Element.Margin = new(0);
                         Element.Opacity = 0d;
                     }
@@ -117,13 +119,13 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
                             CornerRadius = new(5),
                             Margin = new(0),
                             TextFileName = $"{NetworkInfo.FilesInfo[i].FileName}.{NetworkInfo.FilesInfo[i].FileExtension}",
-                            //ManagerAnimation = App.CurrentApp.ManagerAnimation,
+                            ManagerAnimation = ManagerAnimation,
                         };
                         Element.MathSizeFile(NetworkInfo.FilesInfo[i].LengthFileData);
                     }
                     StackPanelClip.Children.Add(Element);
-                    OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, Element, OpacityProperty,
-                        1d, TimeSpan.FromMilliseconds(500d));
+                    OPLAnimationManager.AnimateTakingZeroFromTo(ManagerAnimation, Element, OpacityProperty,
+                        0d, 1d, TimeSpan.FromMilliseconds(500d));
                     OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, Element, MarginProperty,
                         new Thickness(3), TimeSpan.FromMilliseconds(500d));
                 }
@@ -135,7 +137,7 @@ namespace OPLAPI.OIEL.UserElementsControl.Network
         /// </summary>
         /// <param name="Source">Прикрепляемый элемент к сообщению</param>
         /// <returns></returns>
-        public void ClipObjectFromMessage(ref OPLNetworkClipElement Source)
+        public void ClipObjectFromMessage(ref OPLVisualNetworkClipFile Source)
         {
             StackPanelClip.Children.Add(Source);
         }

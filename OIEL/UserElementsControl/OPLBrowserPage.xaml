@@ -21,7 +21,7 @@
                 </IEL:IELScrollViewer>
             </Border>
             <Grid Grid.Row="1">
-                <IEL:IELPageController x:FieldModifier="private" x:Name="MainPageController" LeftAnimateSwitch="5,5,5,5" RightAnimateSwitch="-5,-5,-5,-5" Focusable="True"/>
+                <IEL:IELContentController x:FieldModifier="private" x:Name="MainPageController" LeftAnimateSwitch="5,5,5,5" RightAnimateSwitch="-5,-5,-5,-5" Focusable="True"/>
             </Grid>
         </Grid>
     </Border>

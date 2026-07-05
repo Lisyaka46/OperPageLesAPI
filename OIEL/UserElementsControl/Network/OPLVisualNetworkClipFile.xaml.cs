@@ -1,7 +1,9 @@
-﻿using IEL.UserElementsControl.Base;
+﻿using IEL.CORE.Classes;
+using IEL.UserElementsControl.Base;
 using Newtonsoft.Json.Linq;
 using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Interfaces;
+using OPLAPI.OIEL.UserElementsControl.Base;
 using System.Drawing;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -12,12 +14,12 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
-namespace OperPageLes.UI.UserElementsControl.Network
+namespace OPLAPI.OIEL.UserElementsControl.Network
 {
     /// <summary>
-    /// Логика взаимодействия для OPLNetworkClipFile.xaml
+    /// Объект отображающий вложенный объект
     /// </summary>
-    public partial class OPLNetworkClipElement : IELContainerBase, IOPLAnimate
+    public partial class OPLVisualNetworkClipFile : NetworkClipElementBase, IOPLAnimate
     {
         #region Properties
 
@@ -26,11 +28,11 @@ namespace OperPageLes.UI.UserElementsControl.Network
         /// Данные конкретного свойства
         /// </summary>
         public static readonly DependencyProperty TextFileNameProperty =
-            DependencyProperty.Register("TextFileName", typeof(string), typeof(OPLNetworkClipElement),
+            DependencyProperty.Register("TextFileName", typeof(string), typeof(OPLVisualNetworkClipFile),
                 new("Name",
                     (sender, e) =>
                     {
-                        ((OPLNetworkClipElement)sender).TextBlockNameFile.Text = (string)e.NewValue;
+                        ((OPLVisualNetworkClipFile)sender).TextBlockNameFile.Text = (string)e.NewValue;
                     }));
 
         /// <summary>
@@ -43,48 +45,17 @@ namespace OperPageLes.UI.UserElementsControl.Network
         }
         #endregion
 
-        #region TextMessage
-        /// <summary>
-        /// Данные конкретного свойства
-        /// </summary>
-        public static readonly DependencyProperty TextMessageProperty =
-            DependencyProperty.Register("TextMessage", typeof(string), typeof(OPLNetworkClipElement),
-                new(string.Empty,
-                    (sender, e) =>
-                    {
-                        ((OPLNetworkClipElement)sender).TextBlockMessage.Text = (string)e.NewValue;
-                    }));
-
-        /// <summary>
-        /// Текст сообщения
-        /// </summary>
-        public string TextMessage
-        {
-            get => (string)GetValue(TextMessageProperty);
-            set
-            {
-                if (value.Length != TextBlockMessage.Text.Length && (value.Length == 0 || TextBlockMessage.Text.Length == 0))
-                {
-                    OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, TextBlockMessage, HeightProperty,
-                        value.Length == 0 ? 0d : 14d, TimeSpan.FromMilliseconds(300d));
-                }
-                SetValue(TextMessageProperty, value);
-            }
-        }
-        #endregion
-
         #region FontFamily
         /// <summary>
         /// Данные конкретного свойства
         /// </summary>
         public static readonly new DependencyProperty FontFamilyProperty =
-            DependencyProperty.Register("FontFamily", typeof(System.Windows.Media.FontFamily), typeof(OPLNetworkClipElement),
+            DependencyProperty.Register("FontFamily", typeof(System.Windows.Media.FontFamily), typeof(OPLVisualNetworkClipFile),
                 new(new System.Windows.Media.FontFamily("Calibri"),
                     (sender, e) =>
                     {
-                        ((OPLNetworkClipElement)sender).TextBlockNameFile.FontFamily = (System.Windows.Media.FontFamily)e.NewValue;
-                        ((OPLNetworkClipElement)sender).TextBlockSizeFile.FontFamily = (System.Windows.Media.FontFamily)e.NewValue;
-                        ((OPLNetworkClipElement)sender).TextBlockIndex.FontFamily = (System.Windows.Media.FontFamily)e.NewValue;
+                        ((OPLVisualNetworkClipFile)sender).TextBlockNameFile.FontFamily = (System.Windows.Media.FontFamily)e.NewValue;
+                        ((OPLVisualNetworkClipFile)sender).TextBlockSizeFile.FontFamily = (System.Windows.Media.FontFamily)e.NewValue;
                     }));
 
         /// <summary>
@@ -102,11 +73,11 @@ namespace OperPageLes.UI.UserElementsControl.Network
         /// Данные конкретного свойства
         /// </summary>
         public static readonly DependencyProperty StrokeDashLengthProperty =
-            DependencyProperty.Register("StrokeDashLength", typeof(double), typeof(OPLNetworkClipElement),
+            DependencyProperty.Register("StrokeDashLength", typeof(double), typeof(OPLVisualNetworkClipFile),
                 new(28d,
                     (sender, e) =>
                     {
-                        ((OPLNetworkClipElement)sender).RectangleLoading.StrokeDashArray[0] = (double)e.NewValue;
+                        ((OPLVisualNetworkClipFile)sender).RectangleLoading.StrokeDashArray[0] = (double)e.NewValue;
                     }));
 
         /// <summary>
@@ -122,39 +93,27 @@ namespace OperPageLes.UI.UserElementsControl.Network
         #endregion
 
         /// <summary>
-        /// Состояние активности взаимодействия с файлом
-        /// </summary>
-        public bool IsManipulate { get; private set; } = false;
-
-        /// <summary>
         /// Состояние текстовой визуализации загрузки
         /// </summary>
         private bool IsProgressTextVizualizate = false;
 
         /// <summary>
-        /// Объект менеджера анимационных настроек OPL
+        /// Инициализировать объект отображающий вложение файла
         /// </summary>
-        public OPLAnimationManager? ManagerAnimation { get; set; }
-
-        public OPLNetworkClipElement()
+        public OPLVisualNetworkClipFile()
         {
             InitializeComponent();
             TextBlockProgress.Opacity = 0d;
-            TextBlockMessage.Height = 0d;
             IconLoadingFile.Opacity = 0d;
-            BorderIndex.Width = 0;
             RotateGradientLoading.Angle = 0d;
             RadialGradientLoading.Center = new(0.5d, 0.5d);
             RectangleLoading.StrokeDashOffset = 28d;
             RectangleLoading.StrokeDashArray[0] = 28d;
             TextBlockSizeFile.Text = string.Empty;
             TextBlockNameFile.Text = string.Empty;
-            TextBlockIndex.Text = string.Empty;
 
-            BorderIndex.BorderBrush = SourceBorderBrush.SourceBrush;
             TextBlockSizeFile.Foreground = SourceForeground.SourceBrush;
             TextBlockNameFile.Foreground = SourceForeground.SourceBrush;
-            TextBlockIndex.Foreground = SourceForeground.SourceBrush;
             TextBlockProgress.Foreground = SourceForeground.SourceBrush;
             RectangleLoading.Fill = SourceForeground.SourceBrush;
         }
@@ -203,6 +162,7 @@ namespace OperPageLes.UI.UserElementsControl.Network
                 RotateGradientLoading.Angle = 0d;
                 RadialGradientLoading.Center = new(0.5d, 0.5d);
             }
+
             //while (OpenStreamFile.Length < DataCount)
             //{
             //    await Task.Delay(500);
@@ -213,7 +173,7 @@ namespace OperPageLes.UI.UserElementsControl.Network
             //        RectangleLoading.StrokeDashOffset =
             //            26 - (26 * (DataCount / OpenStreamFile.Length));
             //}
-            
+
         }
 
         /// <summary>
@@ -290,30 +250,6 @@ namespace OperPageLes.UI.UserElementsControl.Network
                 OPLAnimationManager.AnimateTakingZeroFromTo(ManagerAnimation, IconLoadingFile, OpacityProperty,
                     0d, 1d, TimeSpan.FromMilliseconds(400d));
             });
-        }
-
-        /// <summary>
-        /// Установить визуализационный индекс
-        /// </summary>
-        /// <param name="IndexView">Индекс</param>
-        public void SetIndex(uint IndexView)
-        {
-            TextBlockIndex.Text = IndexView.ToString();
-            if (BorderIndex.Width == 0)
-            {
-                OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, BorderIndex, WidthProperty,
-                    20d, TimeSpan.FromMilliseconds(500d));
-            }
-                
-        }
-
-        /// <summary>
-        /// Отключить визуализационный индекс
-        /// </summary>
-        public void ClearIndex()
-        {
-            OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, BorderIndex, WidthProperty,
-                0d, TimeSpan.FromMilliseconds(500d));
         }
 
         /// <summary>

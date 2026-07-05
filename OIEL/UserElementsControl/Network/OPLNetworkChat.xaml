@@ -21,7 +21,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Image x:FieldModifier="internal" x:Name="ImageIconMessage" Grid.Column="1" Width="15" Margin="1,0,4,0"/>
-            <TextBlock x:FieldModifier="private" x:Name="TextBlockCountFiles" Text="14" FontFamily="{DynamicResource Alphasano}" VerticalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="0" FontSize="14"/>
+            <TextBlock x:FieldModifier="private" x:Name="TextBlockCountElements" Text="14" FontFamily="{DynamicResource Alphasano}" VerticalAlignment="Center" Grid.ColumnSpan="1" Grid.Column="0" FontSize="14"/>
         </Grid>
         <TextBlock x:FieldModifier="internal" x:Name="TextBlockEndMessage" Text="Файл(ы)" Padding="3,0,3,3" HorizontalAlignment="Left" TextTrimming="CharacterEllipsis" Grid.ColumnSpan="1" Grid.Column="2" Foreground="Black" Opacity="{Binding Opacity, ElementName=TextBlockHead}" FontSize="14"/>
     </Grid>

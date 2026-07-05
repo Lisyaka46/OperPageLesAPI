@@ -48,8 +48,8 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// </summary>
         public double CheckBoxCornerRadius
         {
-            get => (double)GetValue(CornerRadiusProperty);
-            set => SetValue(CornerRadiusProperty, value);
+            get => (double)GetValue(CheckBoxCornerRadiusProperty);
+            set => SetValue(CheckBoxCornerRadiusProperty, value);
         }
 
         /// <summary>
