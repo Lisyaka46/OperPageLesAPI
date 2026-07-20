@@ -1,6 +1,8 @@
-﻿using System;
+﻿using OPLAPI.CORE.Person;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -12,14 +14,19 @@ namespace OPLAPI.CORE.Language
     public class LangInfo : INotifyPropertyChanged
     {
         /// <summary>
+        /// Информация об пустом языке
+        /// </summary>
+        public static LangInfo Inknown => new(new(), string.Empty);
+
+        /// <summary>
         /// Данные конфигурации перевода
         /// </summary>
-        private LangConfig Config;
+        public readonly LangConfig Config;
 
         /// <summary>
         /// Директория файла
         /// </summary>
-        public string? Path { get; internal set; }
+        public string Path { get; internal set; }
 
         private string _Name;
         /// <summary>
@@ -34,6 +41,11 @@ namespace OPLAPI.CORE.Language
                 OnPropertyChanged(nameof(Name));
             }
         }
+
+        /// <summary>
+        /// Автор перевода
+        /// </summary>
+        public Autor LangAutor { get; internal set; }
 
         #region PropertyChanged
         /// <summary>
@@ -53,10 +65,14 @@ namespace OPLAPI.CORE.Language
         /// Инициализировать объект данных о переводе
         /// </summary>
         /// <param name="SourceConfig">Данные концигурации</param>
-        internal LangInfo(LangConfig SourceConfig)
+        /// <param name="SourcePath">Путь к файлу перевода</param>
+        internal LangInfo(LangConfig SourceConfig, string SourcePath)
         {
+            if (!File.Exists(SourcePath) && !SourcePath.Equals(string.Empty)) throw new ArgumentException("Невозможно найти файл языкового перевода", nameof(SourcePath));
             Config = SourceConfig;
             _Name = $"Language {SourceConfig.Locate}";
+            Path = SourcePath;
+            LangAutor = Autor.UnknownAutor;
         }
     }
 }
