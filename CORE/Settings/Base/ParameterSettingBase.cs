@@ -132,15 +132,32 @@ namespace OPLAPI.CORE.Settings.Base
         {
             if (NewValue == null) throw new ArgumentNullException(nameof(NewValue));
             Type TypeValue = NewValue.GetType();
-            Type g = Parameter.GetType();
-            Type OriginTypeParameter = typeof(ParameterSetting<>).MakeGenericType(TypeValue);
-            if (g != OriginTypeParameter && g.BaseType != OriginTypeParameter)
-                throw new ArgumentException($"Тип хранимого значения не соответствует типу нового параметра", nameof(NewValue));
-            else if (TypeValue == typeof(double) && Parameter.GetType() == typeof(LimitedParameterDoubleSetting))
+            Type TypeParameter = Parameter.GetType();
+            if (TypeParameter == typeof(LimitedParameterIntSetting) ||
+                TypeParameter == typeof(LimitedParameterDoubleSetting))
+                TypeParameter = TypeParameter.BaseType?.GenericTypeArguments[0] ??
+                    throw new Exception("Непредвиденная ошибка наследования параметров");
+            else
+                TypeParameter = TypeParameter.GenericTypeArguments[0] ??
+                    throw new Exception("Непредвиденная ошибка наследования параметров");
+            Type OriginTypeParameter = Parameter.GetType();
+            if (TypeParameter != TypeValue)
+            {
+                try
+                {
+                    Convert.ChangeType(NewValue, TypeParameter);
+                    TypeValue = TypeParameter;
+                }
+                catch
+                {
+                    throw new ArgumentException($"Тип хранимого значения не соответствует типу нового параметра", nameof(NewValue));
+                }
+            }
+            if (OriginTypeParameter == typeof(LimitedParameterDoubleSetting))
             {
                 ((LimitedParameterDoubleSetting)Parameter).Value = Convert.ToDouble(NewValue);
             }
-            else if (TypeValue == typeof(int) && Parameter.GetType() == typeof(LimitedParameterIntSetting))
+            else if (OriginTypeParameter == typeof(LimitedParameterIntSetting))
             {
                 ((LimitedParameterIntSetting)Parameter).Value = Convert.ToInt32(NewValue);
             }
