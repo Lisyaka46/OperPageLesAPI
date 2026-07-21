@@ -2,6 +2,7 @@
 using IEL.UserElementsControl.Base;
 using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Interfaces;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -95,6 +96,29 @@ namespace OPLAPI.OIEL.UserElementsControl
         {
             get => (Thickness)GetValue(PaddingProperty);
             set => SetValue(PaddingProperty, value);
+        }
+        #endregion
+
+        #region OffsetBorderNaming
+        /// <summary>
+        /// Данные конкретного свойства
+        /// </summary>
+        public static readonly DependencyProperty OffsetBorderNamingProperty =
+            DependencyProperty.Register("OffsetBorderNaming", typeof(double), typeof(OPLVisualElementIM),
+                new(3d,
+                    (sender, e) =>
+                    {
+                        ((OPLVisualElementIM)sender).TextBlockNameApplication.Width =
+                            ((OPLVisualElementIM)sender).ButtonApplication.Width + (double)e.NewValue;
+                    }));
+
+        /// <summary>
+        /// Значение отступа отображения наименования от оригинального размера объекта
+        /// </summary>
+        public double OffsetBorderNaming
+        {
+            get => (double)ButtonApplication.GetValue(OffsetBorderNamingProperty);
+            set => ButtonApplication.SetValue(OffsetBorderNamingProperty, value);
         }
         #endregion
 
@@ -324,6 +348,7 @@ namespace OPLAPI.OIEL.UserElementsControl
         {
             ButtonApplication.Width = Source.Width;
             ButtonApplication.Height = Source.Height;
+            TextBlockNameApplication.Width = Source.Width + OffsetBorderNaming;
         }
     }
 }

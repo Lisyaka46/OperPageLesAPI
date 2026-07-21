@@ -11,9 +11,9 @@
     <Grid x:FieldModifier="private" x:Name="MainGrid">
         <IEL:IELButtonImage x:FieldModifier="private" x:Name="ButtonApplication" Grid.RowSpan="1" Margin="5,5,5,5" CornerRadius="15,15,15,15" MinWidth="30" MinHeight="30" MaxWidth="60" MaxHeight="60" Panel.ZIndex="1" PaletteElement="{DynamicResource Aquamarine}" MarginViewBox="3,3,3,3"/>
         <OIEL:OPLVisualLoading x:FieldModifier="private" x:Name="VisualLoading" Panel.ZIndex="1" BorderBrush="Black" HorizontalAlignment="Center" VerticalAlignment="Center" Width="50" Height="50" IsHitTestVisible="False"/>
-        <Viewbox x:FieldModifier="private" x:Name="ViewBoxName" VerticalAlignment="Bottom" StretchDirection="DownOnly" Stretch="UniformToFill" IsHitTestVisible="False" Margin="0,0,0,-20" HorizontalAlignment="Center">
+        <Viewbox x:FieldModifier="private" x:Name="ViewBoxName" VerticalAlignment="Bottom" StretchDirection="DownOnly" Stretch="UniformToFill" IsHitTestVisible="False" Margin="0,0,0,-20">
             <Border x:Name="BorderName" CornerRadius="7,7,7,7" BorderThickness="1,1,1,1">
-                <TextBlock x:FieldModifier="private" x:Name="TextBlockNameApplication" TextAlignment="Center" FontFamily="{DynamicResource RussianRail G Pro}" Text="???" Padding="1,0,1,0" Width="{Binding ActualHeight, ElementName=ButtonApplication, Mode=OneWay}" TextWrapping="Wrap" Margin="2,2,2,2" TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:FieldModifier="private" x:Name="TextBlockNameApplication" TextAlignment="Center" FontFamily="{DynamicResource RussianRail G Pro}" Text="983476394863948576" Padding="1,0,1,0" TextWrapping="Wrap" Margin="2,2,2,2" TextTrimming="CharacterEllipsis" Width="60"/>
             </Border>
         </Viewbox>
     </Grid>
