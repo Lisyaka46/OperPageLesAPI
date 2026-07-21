@@ -46,7 +46,7 @@ namespace OPLAPI.CORE.Language
         /// <summary>
         /// Активный установленный язык
         /// </summary>
-        public static LangInfo ActiveLang { get; private set; } = LangInfo.Inknown;
+        public static LangInfo ActiveLang { get; private set; } = LangInfo.Unknown;
 
         private static List<LangInfo> _InstalledLanguages = [];
         /// <summary>
@@ -169,14 +169,21 @@ namespace OPLAPI.CORE.Language
                 Name = Document.RootElement.GetProperty(nameof(LangInfo.Name)).Deserialize<string>() ??
                     throw GetExceptionInknownJSONParameter(nameof(LangInfo.Name)),
             };
-            try
-            {
-                SourceInfo.LangAutor.Name =
-                    Document.RootElement.GetProperty("Autor").Deserialize<string>() ?? Autor.UnknownAutor.Name;
-                SourceInfo.LangAutor.Contacts =
-                    Document.RootElement.GetProperty(nameof(Autor.Contacts)).Deserialize<Contact[]>() ?? Autor.UnknownAutor.Contacts;
-            }
-            catch { }
+            #region Autor
+            try { SourceInfo.LangAutor.Name = Document.RootElement.GetProperty("Autor").Deserialize<string>() ?? Autor.UnknownAutor.Name; }
+            catch { SourceInfo.LangAutor.Name = Autor.UnknownAutor.Name; }
+
+            try { 
+                SourceInfo.LangAutor.Contacts = [..Document.RootElement.GetProperty("Contacts").EnumerateArray().Select(element =>
+                    {
+                        string L, U, M;
+                        L = element.GetProperty(nameof(Contact.Locate)).Deserialize<string>() ?? throw new Exception();
+                        U = element.GetProperty(nameof(Contact.URL)).Deserialize<string>() ?? throw new Exception();
+                        M = element.GetProperty(nameof(Contact.Mask)).Deserialize<string>() ?? throw new Exception();
+                        return new Contact(L, U, M);
+                    })]; }
+            catch { SourceInfo.LangAutor.Contacts = Autor.UnknownAutor.Contacts; }
+            #endregion
             return SourceInfo;
         }
         #endregion

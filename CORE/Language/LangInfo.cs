@@ -16,7 +16,7 @@ namespace OPLAPI.CORE.Language
         /// <summary>
         /// Информация об пустом языке
         /// </summary>
-        public static LangInfo Inknown => new(new(), string.Empty);
+        public static LangInfo Unknown => new(new(), string.Empty);
 
         /// <summary>
         /// Данные конфигурации перевода
