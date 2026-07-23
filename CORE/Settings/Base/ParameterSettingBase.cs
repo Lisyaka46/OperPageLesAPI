@@ -1,5 +1,6 @@
 ﻿using Microsoft.Windows.Themes;
 using Newtonsoft.Json;
+using OPLAPI.CORE.Language;
 using OPLAPI.CORE.Settings.Interfaces;
 using OPLAPI.CORE.Settings.Parameters;
 using System.ComponentModel;
@@ -15,6 +16,7 @@ namespace OPLAPI.CORE.Settings.Base
     [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
     public abstract class ParameterSettingBase : IParameterSettingBase, INotifyPropertyChanged
     {
+        #region Name
         private string _ParameterName;
         /// <summary>
         /// Имя параметра настроек
@@ -29,6 +31,13 @@ namespace OPLAPI.CORE.Settings.Base
             }
         }
 
+        /// <summary>
+        /// Значение для обработки языкового перевода имени параметра
+        /// </summary>
+        private object? LangValueName;
+        #endregion
+
+        #region Description
         private string? _ParameterDescription;
         /// <summary>
         /// Описание параметра настроек
@@ -42,6 +51,12 @@ namespace OPLAPI.CORE.Settings.Base
                 OnPropertyChanged(nameof(ParameterDescription));
             }
         }
+
+        /// <summary>
+        /// Значение для обработки языкового перевода описания параметра
+        /// </summary>
+        private object? LangValueDescription;
+        #endregion
 
         /// <summary>
         /// Хранимый тип значения для параметра
@@ -102,6 +117,7 @@ namespace OPLAPI.CORE.Settings.Base
             _Value = ValueSet ? SourceDefaultValue : null;
             _ParameterName = $"Parameter is {SourceDefaultValue.GetType().Name} type";
             _ParameterDescription = null;
+            Lang.LanguageUpdated += Lang_LanguageUpdated;
         }
 
         /// <summary>
@@ -116,6 +132,38 @@ namespace OPLAPI.CORE.Settings.Base
             _Value = SourceValue;
             _ParameterName = $"Parameter is {SourceDefaultValue.GetType().Name} type";
             _ParameterDescription = null;
+        }
+
+        /// <summary>
+        /// Обработчик события изменения языкового перевода
+        /// </summary>
+        private void Lang_LanguageUpdated(object? sender, EventArgs e)
+        {
+            if (LangValueName != null) ParameterName = Lang.GetValue(LangValueName);
+            if (LangValueDescription != null) ParameterDescription = Lang.GetValue(LangValueDescription);
+        }
+
+        /// <summary>
+        /// Присоеденить зависимые языковые данные параметра настроек
+        /// </summary>
+        /// <param name="StyleConnect">Тип языкового параметра для параметра настроек</param>
+        /// <param name="LangValue">Значение для обработки языкового словаря</param>
+        public void ConnectLangParameters(LangParameterValue StyleConnect, object LangValue)
+        {
+            Type TypeEnum = LangValue.GetType();
+            if (LangValue == null || !TypeEnum.IsEnum || TypeEnum.GetEnumUnderlyingType() != typeof(ulong))
+                throw new Exception("Невозможно присоеденить данный тип параметра языкового перевода");
+            switch (StyleConnect)
+            {
+                case LangParameterValue.Name:
+                    LangValueName = LangValue;
+                    ParameterName = Lang.GetValue(LangValue);
+                    break;
+                case LangParameterValue.Description:
+                    LangValueDescription = LangValue;
+                    ParameterDescription = Lang.GetValue(LangValue);
+                    break;
+            }
         }
 
         /// <summary>
