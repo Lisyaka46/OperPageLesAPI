@@ -77,15 +77,23 @@ namespace OPLAPI.CORE.Language
         /// В зависимости от типа <see cref="Enum"/>, словарь перевода будет отличаться.<br/>
         /// При неизвестном типе, несоответствующем параметре, отсутствии числовой данной в словаре, будет выведена стандартная строка отсутствия перевода "string.Empty"
         /// </remarks>
-        /// <returns>Строка, которая является переведённой для </returns>
+        /// <returns>Строка, которая является переведённой для текущего языкового перевода</returns>
         public static string GetValue(object Key)
         {
+            if (Key == null) return InknownTranslate;
             Type KeyType = Key.GetType();
-            if (Key == null || !KeyType.IsEnum) return InknownTranslate;
+            if (!KeyType.IsEnum) return InknownTranslate;
             string NameRootDictionary = KeyType.Name;
             if (ActiveDictionaryLang.TryGetValue(NameRootDictionary, out Dictionary<ulong, string>? SourceDictionary))
             {
-                return SourceDictionary[(ulong)Key];
+                try
+                {
+                    return SourceDictionary[(ulong)Key];
+                }
+                catch
+                {
+                    return InknownTranslate;
+                }
             }
             else return InknownTranslate;
         }
@@ -184,6 +192,11 @@ namespace OPLAPI.CORE.Language
                     })]; }
             catch { SourceInfo.LangAutor.Contacts = Autor.UnknownAutor.Contacts; }
             #endregion
+            Dictionary<string, Dictionary<string, string>> SourceDictionaryJSONTranslate;
+            try { SourceDictionaryJSONTranslate =
+                    Document.RootElement.GetProperty(NameParameterTranslate).Deserialize<Dictionary<string, Dictionary<string, string>>>() ?? []; }
+            catch { SourceDictionaryJSONTranslate = []; }
+            AnalizeLang(ref SourceInfo, SourceDictionaryJSONTranslate);
             return SourceInfo;
         }
         #endregion
@@ -193,16 +206,53 @@ namespace OPLAPI.CORE.Language
         /// Обновить словарь языкового перевода по его информации
         /// </summary>
         /// <param name="Info">Информация о языковом переводе</param>
-        /// <param name="InvalidKeys">Ключи которые являются неподдерживаемыми в языковом переводе</param>
-        public static void UpdateLang(LangInfo Info, out string[] InvalidKeys)
+        public static void UpdateLang(LangInfo Info)
         {
             string JSON = File.ReadAllText(Info.Path ??
                 throw new Exception("Невозможно прочитать данный файл, так как путь к нему является нулевым"));
             JsonDocument Document = JsonDocument.Parse(JSON);
             ActiveLang = Info;
-            ActiveDictionaryLang = AnalizeDictionaryLang(
-                Assembly.GetCallingAssembly(), Document.RootElement.GetProperty(NameParameterTranslate), out InvalidKeys);
+            ActiveDictionaryLang = GetDictionaryLang(
+                Assembly.GetCallingAssembly(), Document.RootElement.GetProperty(NameParameterTranslate));
             LanguageUpdated?.Invoke(null, System.EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Произвести анализ словаря перевода
+        /// </summary>
+        /// <param name="SourceLangInfo">Словарь языкового перевода над которым проводится анализ</param>
+        /// <param name="TranslateDictionary">Словарь языкового перевода</param>
+        /// <returns>Ключи которые являются лишними/не поддерживаемыми</returns>
+        private static void AnalizeLang(ref LangInfo SourceLangInfo, Dictionary<string, Dictionary<string, string>> TranslateDictionary)
+        {
+            Assembly SourceAssembly = Assembly.GetEntryAssembly() ?? throw new Exception("Невозможно получить сборку которая управляет приложением");
+            Type[] AssemblyTypes = SourceAssembly.GetTypes();
+            List<string> ListInvalidKeys = [];
+            Type TypeEnum;
+            ulong CountSourceTranslate = 0LU, CountExpectedTranslate = 0LU;
+
+            foreach (KeyValuePair<string, Dictionary<string, string>> Element in TranslateDictionary)
+            {
+                try
+                {
+                    TypeEnum = AssemblyTypes.FirstOrDefault(t => t.Name.Equals(Element.Key)) ?? throw new Exception();
+                    if (TypeEnum.GetEnumUnderlyingType() != typeof(ulong)) throw new Exception();
+                    CountExpectedTranslate += (ulong)Enum.GetNames(TypeEnum).Length;
+                    foreach (KeyValuePair<string, string> OneTypeElement in Element.Value)
+                    {
+                        if (Enum.TryParse(TypeEnum, OneTypeElement.Key, out object? ValueEnum))
+                            CountSourceTranslate++;
+                        else ListInvalidKeys.Add($"{Element.Key}.{OneTypeElement.Key}");
+                    }
+                }
+                catch
+                {
+                    ListInvalidKeys.AddRange(Element.Value.Select((i) => $"{Element.Key}.{i.Key}"));
+                }
+            }
+            SourceLangInfo.CountSourceTranslate = CountSourceTranslate;
+            SourceLangInfo.CountExpectedTranslate = CountExpectedTranslate;
+            SourceLangInfo.InvalidKeys = [.. ListInvalidKeys];
         }
 
         /// <summary>
@@ -210,13 +260,11 @@ namespace OPLAPI.CORE.Language
         /// </summary>
         /// <param name="SourceAssemblyDataTypes">Сборка в которой хранятся типы для языкового перевода</param>
         /// <param name="JSONTranslateElement">параметр JSON в котором хранятся данные перевода</param>
-        /// <param name="InvalidKeys">Ключи которые являются лишними для перевода</param>
-        /// <returns>Словарь </returns>
-        private static Dictionary<string, Dictionary<ulong, string>> AnalizeDictionaryLang(
-            in Assembly SourceAssemblyDataTypes, in JsonElement JSONTranslateElement, out string[] InvalidKeys)
+        /// <returns>Словарь языкового перевода</returns>
+        private static Dictionary<string, Dictionary<ulong, string>> GetDictionaryLang(
+            in Assembly SourceAssemblyDataTypes, in JsonElement JSONTranslateElement)
         {
             Type[] AssemblyTypes = SourceAssemblyDataTypes.GetTypes();
-            List<string> ListInvalidKeys = [];
             Dictionary<string, Dictionary<ulong, string>> Result = [];
             ulong ValueTranslate = 0LU;
             Type TypeEnum;
@@ -238,15 +286,10 @@ namespace OPLAPI.CORE.Language
                             ValueTranslate = (ulong)ValueEnum;
                             Result[Element.Key].Add(ValueTranslate, OneTypeElement.Value);
                         }
-                        else ListInvalidKeys.Add($"{Element.Key}.{OneTypeElement.Key}");
                     }
                 }
-                catch
-                {
-                    ListInvalidKeys.Add(Element.Key + ".*");
-                }
+                catch { continue; }
             }
-            InvalidKeys = [.. ListInvalidKeys];
             return Result;
         }
         #endregion

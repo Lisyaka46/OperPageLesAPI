@@ -47,6 +47,26 @@ namespace OPLAPI.CORE.Language
         /// </summary>
         public Autor LangAutor { get; internal set; }
 
+        /// <summary>
+        /// Процент перевода (0d->1d)
+        /// </summary>
+        public double PercentTranslate => Math.Round((double)CountSourceTranslate / (double)CountExpectedTranslate, 5);
+
+        /// <summary>
+        /// Количество текущих переводов
+        /// </summary>
+        public ulong CountSourceTranslate { get; internal set; }
+
+        /// <summary>
+        /// Количество ожидаемых переводов
+        /// </summary>
+        public ulong CountExpectedTranslate { get; internal set; }
+
+        /// <summary>
+        /// Лишние ключи языкового перевода
+        /// </summary>
+        public string[] InvalidKeys { get; internal set; }
+
         #region PropertyChanged
         /// <summary>
         /// Событие изменения свойства параметра
