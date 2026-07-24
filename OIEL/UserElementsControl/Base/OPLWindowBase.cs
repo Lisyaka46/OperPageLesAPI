@@ -250,7 +250,7 @@ namespace OPLAPI.OIEL.UserElementsControl.Base
         /// <summary>
         /// Объект панели действий подключаемый к элементу отображения OPL
         /// </summary>
-        public IELPanelAction SourcePanelAction { get; }
+        public IELPanelAction? SourcePanelAction { get; }
 
         private OPLAnimationManager? SourceManagerAnimation;
         /// <summary>

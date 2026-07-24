@@ -93,6 +93,7 @@ namespace OPLAPI.CORE.Language
             _Name = $"Language {SourceConfig.Locate}";
             Path = SourcePath;
             LangAutor = Autor.UnknownAutor;
+            InvalidKeys = [];
         }
     }
 }

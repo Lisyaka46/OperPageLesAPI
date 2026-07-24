@@ -5,6 +5,9 @@ using System.Text;
 
 namespace OPLAPI.OIEL.CORE.Network
 {
+    /// <summary>
+    /// Объект информации о передаваемых данных
+    /// </summary>
     public class DataNetworkInfo
     {
         /// <summary>

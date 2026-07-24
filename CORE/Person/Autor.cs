@@ -4,6 +4,9 @@ using System.Text;
 
 namespace OPLAPI.CORE.Person
 {
+    /// <summary>
+    /// Объект автора
+    /// </summary>
     public class Autor
     {
         /// <summary>

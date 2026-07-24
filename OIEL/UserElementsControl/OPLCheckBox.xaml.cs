@@ -177,6 +177,9 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// </summary>
         public OPLAnimationManager? ManagerAnimation { get; set; }
 
+        /// <summary>
+        /// Инициализировать объект CheckBox
+        /// </summary>
         public OPLCheckBox()
         {
             InitializeComponent();
