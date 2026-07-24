@@ -270,7 +270,7 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// Установить и добавить страничное приложение в менеджер приложений страниц
         /// </summary>
         /// <param name="PathFile">Директория установочного файла страничного приложения</param>
-        public async Task AddNewAppPage(string PathFile)
+        public void AddNewAppPage(string PathFile)
         {
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
             InstallableAppPage Source = SourceManagerAppPage.AddNewAppPage(PathFile);
