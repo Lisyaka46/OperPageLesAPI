@@ -27,6 +27,11 @@ namespace OPLAPI.CORE.Themes
         private static DirectoryInfo DirectoryThemesInfo = new(DirectoryThemesApplication);
 
         /// <summary>
+        /// Расширение файлов тем
+        /// </summary>
+        internal static readonly string ExtensionThemeFile = ".qd";
+
+        /// <summary>
         /// Словарь всех 
         /// </summary>
         private static Dictionary<uint, PaletteSpectrum> ActivePalette = [];
@@ -108,12 +113,30 @@ namespace OPLAPI.CORE.Themes
         }
 
         /// <summary>
+        /// Узнать, содержится ли ключ спектра в палитре
+        /// </summary>
+        /// <param name="Key">Ключ спектра</param>
+        /// <remarks>
+        /// В качестве параметра принимается общий объект.<br/>
+        /// Предполагается что в качестве ключа будет ожидаться тип <see cref="Enum"/> с определённым типом<br/>
+        /// При неизвестном типе, несоответствующем параметре, отсутствии числовой данной в словаре, будет выведен стандартный спектр темы<br/>
+        /// Если <see cref="Theme.SelectEnumSpectrumType"/> = null; то всегда будет выводиться стандартный спектр темы
+        /// </remarks>
+        /// <returns>Содержится ли ключ в палитре</returns>
+        public static bool CheckValue(object Key)
+        {
+            if (Key == null) return false;
+            else if (Key.GetType() != SelectEnumSpectrumType) return false;
+            return ActivePalette.ContainsKey((uint)Key);
+        }
+
+        /// <summary>
         /// Обновить список тем
         /// </summary>
         public static void UpdateListThemes()
         {
             DirectoryThemesInfo.Refresh();
-            InstalledThemes = [.. DirectoryThemesInfo.GetFiles().Select((i) => i.FullName)];
+            InstalledThemes = [.. DirectoryThemesInfo.GetFiles().Where((i) => i.Extension.Equals(ExtensionThemeFile)).Select((i) => i.Name)];
             ThemeListUpdated?.Invoke(null, EventArgs.Empty);
         }
 
@@ -123,7 +146,7 @@ namespace OPLAPI.CORE.Themes
         public static async Task UpdateTheme(string PathFileTheme)
         {
             FileInfo Info = new(PathFileTheme);
-            if (!Info.Exists || !Info.Extension.Equals(".qd"))
+            if (!Info.Exists || !Info.Extension.Equals(ExtensionThemeFile))
                 throw new ArgumentException("Невозможно установить тему, так как файл не существует или не соответствует расширению");
             byte[] BytesDataTheme = await File.ReadAllBytesAsync(Info.FullName);
             ActivePalette.Clear();
@@ -189,7 +212,47 @@ namespace OPLAPI.CORE.Themes
             Stream.Write([.. BytesFromPaletteSpectrum], 0, BytesFromPaletteSpectrum.Count);
         }
 
-        //
-        public static string CreateNewTheme()
+        /// <summary>
+        /// Создать и записать данные темы в файл
+        /// </summary>
+        /// <remarks>
+        /// Указатель в файле перемещается в самое начало после добавления данных о теме
+        /// <code>FileStream.Seek(0L, SeekOrigin.Begin);</code>
+        /// </remarks>
+        /// <param name="NameTheme">Имя создаваемой темы</param>
+        /// <param name="OriginPallete">Палитра, на основе которой содаётся тема</param>
+        /// <returns>Поток файла в котором содержится все данные</returns>
+        public static async Task<FileStream> CreateNewTheme(string NameTheme, Dictionary<uint, PaletteSpectrum>? OriginPallete = null)
+        {
+            UpdateListThemes();
+            if (InstalledThemes.Any((i) => i.Equals(NameTheme)))
+                throw new ArgumentException("Невозможно создать тему, так как тема с таким именем уже создана", nameof(NameTheme));
+            DirectoryThemesInfo.EnumerateFiles("*" + ExtensionThemeFile);
+            Dictionary<uint, PaletteSpectrum> SourcePallete = OriginPallete ?? ActivePalette;
+            if (SelectEnumSpectrumType == null)
+                throw new Exception("Невозможно создать тему, так как не выделен тип перечисления для палитры спектров");
+            uint[] ValuesEnumType = [.. Enum.GetValues(SelectEnumSpectrumType).Cast<uint>()];
+            FileStream Result = File.Create($"{DirectoryThemesApplication}{NameTheme}{ExtensionThemeFile}");
+            byte[] BytesData;
+            PaletteSpectrum Spectrum;
+
+            #region WriteNameType
+            BytesData = BitConverter.GetBytes((ushort)SelectEnumSpectrumType.Name.Length);
+            await Result.WriteAsync(BytesData);
+            BytesData = Encoding.UTF8.GetBytes(SelectEnumSpectrumType.Name);
+            await Result.WriteAsync(BytesData);
+            #endregion
+
+            foreach (uint Key in ValuesEnumType)
+            {
+                if (SourcePallete.TryGetValue(Key, out var value)) Spectrum = value;
+                else Spectrum = PaletteSpectrum.UnknownPaletteSpectrum;
+                await Result.WriteAsync(Spectrum.BG.GetSourceBytes());
+                await Result.WriteAsync(Spectrum.BB.GetSourceBytes());
+                await Result.WriteAsync(Spectrum.FG.GetSourceBytes());
+            }
+            Result.Seek(0L, SeekOrigin.Begin);
+            return Result;
+        }
     }
 }
