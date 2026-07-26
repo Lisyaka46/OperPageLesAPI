@@ -36,7 +36,7 @@ namespace OPLAPI.CORE.Language
         /// <summary>
         /// Неизвестный перевод
         /// </summary>
-        private const string InknownTranslate = "string.Empty";
+        private const string UnknownTranslate = "string.Empty";
 
         /// <summary>
         /// Активный текущий словарь
@@ -80,9 +80,9 @@ namespace OPLAPI.CORE.Language
         /// <returns>Строка, которая является переведённой для текущего языкового перевода</returns>
         public static string GetValue(object Key)
         {
-            if (Key == null) return InknownTranslate;
+            if (Key == null) return UnknownTranslate;
             Type KeyType = Key.GetType();
-            if (!KeyType.IsEnum) return InknownTranslate;
+            if (!KeyType.IsEnum) return UnknownTranslate;
             string NameRootDictionary = KeyType.Name;
             if (ActiveDictionaryLang.TryGetValue(NameRootDictionary, out Dictionary<ulong, string>? SourceDictionary))
             {
@@ -92,10 +92,10 @@ namespace OPLAPI.CORE.Language
                 }
                 catch
                 {
-                    return InknownTranslate;
+                    return UnknownTranslate;
                 }
             }
-            else return InknownTranslate;
+            else return UnknownTranslate;
         }
 
         /// <summary>
