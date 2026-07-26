@@ -3,6 +3,7 @@ using OPLAPI.CORE.Language;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Windows.Media;
@@ -36,16 +37,6 @@ namespace OPLAPI.CORE.Themes
         private static string ActiveDirectoryFileTheme = string.Empty;
 
         /// <summary>
-        /// Значение неизвестного спектра палитры
-        /// </summary>
-        private static readonly PaletteSpectrum UnknownPaletteSpectrum = new()
-        {
-            BG = new(Colors.White, Colors.Gray, Colors.LightGray, Colors.DarkRed),
-            BB = new(Colors.Black, Colors.DarkGray, Colors.Gray, Colors.Black),
-            FG = new(Colors.Black, Colors.Black, Colors.DarkCyan, Colors.Black),
-        };
-
-        /// <summary>
         /// Установленные объекты тем
         /// </summary>
         public static string[] InstalledThemes { get; private set; } = [];
@@ -57,12 +48,26 @@ namespace OPLAPI.CORE.Themes
         public static Type? SelectEnumSpectrumType
         {
             get => _SelectEnumSpectrumType;
-            set
+            private set
             {
                 if (value == null || (value.GetType().IsEnum && Enum.GetUnderlyingType(value) != typeof(uint)))
                     _SelectEnumSpectrumType = value;
                 else throw new ArgumentException("Невозможно выделить тип, который не подходит под (Enum : uint)");
             }
+        }
+
+        /// <summary>
+        /// Выделить тип перечисления для спектров палитры
+        /// </summary>
+        /// <param name="NameType">Имя поискового типа</param>
+        /// <param name="SourceAssembly">Сборка в которой хранится тип</param>
+        public static void SetSelectEnumSpectrumType(Assembly SourceAssembly, string NameType)
+        {
+            Type[] AllTypesCallAssembly = SourceAssembly.GetTypes();
+            if (SelectEnumSpectrumType == null || !SelectEnumSpectrumType.Name.Equals(NameType))
+                SelectEnumSpectrumType = AllTypesCallAssembly.FirstOrDefault((i) => i.Name.Equals(NameType)) ??
+                    throw new Exception($"Ожидаемый тип \"{NameType}\" не существует в сборке \"{SourceAssembly.FullName}\", " +
+                    "которая вызвала этот метод");
         }
 
         #region Events
@@ -90,15 +95,15 @@ namespace OPLAPI.CORE.Themes
         /// <returns>Спектр, который хранится в текущей теме</returns>
         public static PaletteSpectrum GetValue(object Key)
         {
-            if (Key == null) return UnknownPaletteSpectrum;
-            else if (Key.GetType() != SelectEnumSpectrumType) return UnknownPaletteSpectrum;
+            if (Key == null) return PaletteSpectrum.UnknownPaletteSpectrum;
+            else if (Key.GetType() != SelectEnumSpectrumType) return PaletteSpectrum.UnknownPaletteSpectrum;
             try
             {
                 return ActivePalette[(uint)Key];
             }
             catch
             {
-                return UnknownPaletteSpectrum;
+                return PaletteSpectrum.UnknownPaletteSpectrum;
             }
         }
 
@@ -118,17 +123,40 @@ namespace OPLAPI.CORE.Themes
         public static async Task UpdateTheme(string PathFileTheme)
         {
             FileInfo Info = new(PathFileTheme);
-            if (SelectEnumSpectrumType == null)
-                throw new Exception("Невозможно установить тему, так как не выделен тип перечисления");
-            else if (!Info.Exists || !Info.Extension.Equals(".qd"))
+            if (!Info.Exists || !Info.Extension.Equals(".qd"))
                 throw new ArgumentException("Невозможно установить тему, так как файл не существует или не соответствует расширению");
             byte[] BytesDataTheme = await File.ReadAllBytesAsync(Info.FullName);
-            uint[] ValuesEnumType = [..Enum.GetValues(SelectEnumSpectrumType).Cast<uint>()];
+            ActivePalette.Clear();
+            ActivePalette = GetDictionaryPalette(BytesDataTheme);
+            ThemeUpdated?.Invoke(null, EventArgs.Empty);
+        }
 
-            int CountChunks = BytesDataTheme.Length / PaletteSpectrum.CountQDataSpectrum;
+        /// <summary>
+        /// Создать словарь палитры спектров по байтам данных
+        /// </summary>
+        /// <param name="BytesDataFile">Данные палитры</param>
+        /// <param name="SetSelectType">Выделить ли хранящийся тип в данных</param>
+        /// <returns>Объект словаря палитры спектров</returns>
+        private static Dictionary<uint, PaletteSpectrum> GetDictionaryPalette(byte[] BytesDataFile, bool SetSelectType = true)
+        {
+            Dictionary<uint, PaletteSpectrum> Result = [];
+
+            #region ReadType
+            ushort CountBytesNameType = BitConverter.ToUInt16(BytesDataFile.AsSpan()[0..2]);
+            BytesDataFile = BytesDataFile[2..];
+            string NameEnumType = Encoding.UTF8.GetString(BytesDataFile.AsSpan()[0..CountBytesNameType]);
+            BytesDataFile = BytesDataFile[CountBytesNameType..];
+            if (SetSelectType) SetSelectEnumSpectrumType(Assembly.GetCallingAssembly(), NameEnumType);
+            else if (SelectEnumSpectrumType == null) throw new Exception("Выделенный тип для палитры спектров не установлен");
+#pragma warning disable CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
+            uint[] ValuesEnumType = [.. Enum.GetValues(SelectEnumSpectrumType).Cast<uint>()];
+#pragma warning restore CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
+            #endregion
+
+            int CountChunks = BytesDataFile.Length / PaletteSpectrum.CountQDataSpectrum;
             if (CountChunks > ValuesEnumType.Length)
             {
-                BytesDataTheme = BytesDataTheme[..(PaletteSpectrum.CountQDataSpectrum * ValuesEnumType.Length)];
+                BytesDataFile = BytesDataFile[..(PaletteSpectrum.CountQDataSpectrum * ValuesEnumType.Length)];
                 CountChunks = ValuesEnumType.Length;
             }
 
@@ -136,18 +164,32 @@ namespace OPLAPI.CORE.Themes
             for (int i = 0; i < CountChunks; i++)
             {
                 ChunkDataTheme[i] = new byte[PaletteSpectrum.CountQDataSpectrum];
-                Array.Copy(BytesDataTheme, i * PaletteSpectrum.CountQDataSpectrum, ChunkDataTheme[i], 0, PaletteSpectrum.CountQDataSpectrum);
+                Array.Copy(BytesDataFile, i * PaletteSpectrum.CountQDataSpectrum, ChunkDataTheme[i], 0, PaletteSpectrum.CountQDataSpectrum);
             }
 
             for (int i = 0; i < ValuesEnumType.Length; i++)
-            {
-                if (i > ChunkDataTheme.Length)
-                    ActivePalette.Remove(ValuesEnumType[i]);
-                else if (ActivePalette.ContainsKey(ValuesEnumType[i]))
-                    ActivePalette[ValuesEnumType[i]] = new(ChunkDataTheme[i]);
-                else
-                    ActivePalette.Add(ValuesEnumType[i], new(ChunkDataTheme[i]));
-            }
+                Result.Add(ValuesEnumType[i], new(ChunkDataTheme[i]));
+            return Result;
         }
+
+        /// <summary>
+        /// Записать в поток данных файла данные <see cref="PaletteSpectrum"/>
+        /// </summary>
+        /// <param name="Stream">Поток файла</param>
+        /// <param name="Spectrum">Элемент палитры, который записывается в файл</param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Исключение несоответствия режима открытия файла</exception>
+        public static void WritePalettespectrum(ref FileStream Stream, ref PaletteSpectrum Spectrum)
+        {
+            if (!Stream.CanWrite) throw new Exception("Поток работы с файлом не открыт для записи!");
+            List<byte> BytesFromPaletteSpectrum = [];
+            BytesFromPaletteSpectrum.AddRange(Spectrum.BG.GetSourceBytes());
+            BytesFromPaletteSpectrum.AddRange(Spectrum.BB.GetSourceBytes());
+            BytesFromPaletteSpectrum.AddRange(Spectrum.FG.GetSourceBytes());
+            Stream.Write([.. BytesFromPaletteSpectrum], 0, BytesFromPaletteSpectrum.Count);
+        }
+
+        //
+        public static string CreateNewTheme()
     }
 }
