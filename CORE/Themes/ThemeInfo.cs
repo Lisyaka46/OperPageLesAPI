@@ -1,17 +1,43 @@
-﻿using System;
+﻿using IEL.CORE.Classes;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace OPLAPI.CORE.Themes
 {
     /// <summary>
-    /// Объект информации о палитре
+    /// Класс информации о палитре
     /// </summary>
-    internal class ThemeInfo
+    public class ThemeInfo
     {
         /// <summary>
-        /// Директория файла
+        /// Объект пустой/неизвестной темы
+        /// </summary>
+        internal static ThemeInfo UnknownTheme => new();
+
+        /// <summary>
+        /// Директория файла темы
         /// </summary>
         public string Path { get; internal set; }
+
+        /// <summary>
+        /// Словарь спектров палитры
+        /// </summary>
+        internal Dictionary<uint, PaletteSpectrum> DictionaryPalette { get; set; }
+
+        /// <summary>
+        /// Тип перечисления спектров палитры для темы
+        /// </summary>
+        internal Type? TypeEnumPalette { get; set; }
+
+        /// <summary>
+        /// Инициализировать пустой объект информации о теме
+        /// </summary>
+        private ThemeInfo()
+        {
+            Path = string.Empty;
+            DictionaryPalette = [];
+            TypeEnumPalette = null;
+        }
     }
 }
