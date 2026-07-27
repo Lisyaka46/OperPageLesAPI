@@ -61,7 +61,7 @@ namespace OPLAPI.OIEL.UserElementsControl.Base
         /// </summary>
         public static readonly new DependencyProperty PaletteElementProperty =
             DependencyProperty.Register("PaletteElement", typeof(PaletteSpectrum), typeof(NetworkClipElementBase),
-                new(new PaletteSpectrum(),
+                new(PaletteSpectrum.UnknownPaletteSpectrum,
                     (sender, e) =>
                     {
                         PaletteSpectrum Value = (PaletteSpectrum)e.NewValue;

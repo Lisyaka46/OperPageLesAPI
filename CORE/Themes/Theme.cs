@@ -1,15 +1,9 @@
 ﻿using IEL.CORE.Classes;
-using Newtonsoft.Json.Linq;
-using OPLAPI.CORE.Language;
-using System;
-using System.Collections.Generic;
+using IEL.CORE.Themes;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json;
-using System.Windows.Media;
-using WnColor = System.Windows.Media.Color;
 
 namespace OPLAPI.CORE.Themes
 {
@@ -29,19 +23,14 @@ namespace OPLAPI.CORE.Themes
         private static DirectoryInfo DirectoryThemesInfo = new(DirectoryThemesApplication);
 
         /// <summary>
-        /// Расширение файлов тем
+        /// Установленные объекты тем
         /// </summary>
-        internal static readonly string ExtensionThemeFile = ".qd";
+        public static string[] InstalledThemes { get; private set; } = [];
 
         /// <summary>
         /// Активная директория файла темы
         /// </summary>
         private static string ActiveDirectoryFileTheme = string.Empty;
-
-        /// <summary>
-        /// Установленные объекты тем
-        /// </summary>
-        public static string[] InstalledThemes { get; private set; } = [];
 
         /// <summary>
         /// Словарь всех спектров палитры
@@ -56,7 +45,7 @@ namespace OPLAPI.CORE.Themes
             get => ActiveTheme.TypeEnumPalette;
             private set
             {
-                if (value == null || (value.GetType().IsEnum && Enum.GetUnderlyingType(value) != typeof(uint)))
+                if (value == null || (value.GetType().IsEnum && Enum.GetUnderlyingType(value) != IEL.CORE.Themes.Theme.EnumUnderlyingTypePalette))
                     ActiveTheme.TypeEnumPalette = value;
                 else throw new ArgumentException("Невозможно выделить тип, который не подходит под (Enum : uint)");
             }
@@ -84,21 +73,6 @@ namespace OPLAPI.CORE.Themes
                     ActiveTheme.DictionaryPalette[Key] = PaletteSpectrum.UnknownPaletteSpectrum;
             foreach (uint Key in OldValuesEnumType.Except(ValuesEnumType))
                 ActiveTheme.DictionaryPalette.Remove(Key);
-        }
-
-        /// <summary>
-        /// Узнать тип перечисления для спектров палитры
-        /// </summary>
-        /// <param name="NameType">Имя поискового типа</param>
-        /// <param name="SourceAssembly">Сборка в которой хранится тип</param>
-        private static Type? GetEnumSpectrumType(Assembly SourceAssembly, string NameType)
-        {
-            Type[] AllTypesCallAssembly = SourceAssembly.GetTypes();
-            Type? SourceType = AllTypesCallAssembly.FirstOrDefault((i) => i.Name.Equals(NameType));
-            if (SourceType == null) return null;
-            else if (SourceType.GetType().IsEnum && Enum.GetUnderlyingType(SourceType) != typeof(uint))
-                    return SourceType;
-            else return null;
         }
 
         #region Events
@@ -168,7 +142,8 @@ namespace OPLAPI.CORE.Themes
         private static void UpdateListThemes(bool InvokeEvent)
         {
             DirectoryThemesInfo.Refresh();
-            InstalledThemes = [.. DirectoryThemesInfo.GetFiles().Where((i) => i.Extension.Equals(ExtensionThemeFile)).Select((i) => i.FullName)];
+            InstalledThemes = [.. DirectoryThemesInfo.GetFiles().Where((i) => i.Extension.Equals(IEL.CORE.Themes.Theme.ExtensionThemeFile))
+                .Select((i) => i.FullName)];
             if (InvokeEvent) ThemeListUpdated?.Invoke(null, EventArgs.Empty);
         }
 
@@ -178,7 +153,7 @@ namespace OPLAPI.CORE.Themes
         public static async Task UpdateTheme(string PathFileTheme)
         {
             FileInfo Info = new(PathFileTheme);
-            if (!Info.Exists || !Info.Extension.Equals(ExtensionThemeFile))
+            if (!Info.Exists || !Info.Extension.Equals(IEL.CORE.Themes.Theme.ExtensionThemeFile))
                 throw new ArgumentException("Невозможно установить тему, так как файл не существует или не соответствует расширению");
             byte[] BytesDataTheme = await File.ReadAllBytesAsync(Info.FullName);
             ActiveTheme.DictionaryPalette.Clear();
@@ -196,7 +171,7 @@ namespace OPLAPI.CORE.Themes
         public static Type? GetTypePalette(ReadOnlySpan<byte> BytesDataStringType)
         {
             string NameEnumType = Encoding.UTF8.GetString(BytesDataStringType);
-            return GetEnumSpectrumType(Assembly.GetCallingAssembly(), NameEnumType) ??
+            return IEL.CORE.Themes.Theme.GetEnumSpectrumType(Assembly.GetCallingAssembly(), NameEnumType) ??
                 throw new Exception("Тип перечисления использующийся в теме не найден");
         }
 
@@ -299,7 +274,7 @@ namespace OPLAPI.CORE.Themes
             {
                 if (ActiveTheme.TypeEnumPalette == null)
                     throw new Exception("Невозможно создать новую тему не выделив тип перечисления для спектров палитры");
-                OriginPathTheme = $"{DirectoryThemesApplication}{NameTheme}{ExtensionThemeFile}";
+                OriginPathTheme = $"{DirectoryThemesApplication}{NameTheme}{IEL.CORE.Themes.Theme.ExtensionThemeFile}";
                 StreamNewTheme = new(OriginPathTheme, FileMode.Create, FileAccess.ReadWrite);
                 byte[] NameTypeBytes = Encoding.UTF8.GetBytes(ActiveTheme.TypeEnumPalette.Name);
                 await StreamNewTheme.WriteAsync(BitConverter.GetBytes((ushort)NameTypeBytes.Length));
@@ -314,7 +289,8 @@ namespace OPLAPI.CORE.Themes
             else
             {
                 FileStream StreamRead = new(OriginPathTheme, FileMode.Open, FileAccess.Read);
-                StreamNewTheme = new($"{DirectoryThemesApplication}{NameTheme}{ExtensionThemeFile}", FileMode.Create, FileAccess.ReadWrite);
+                OriginPathTheme = $"{DirectoryThemesApplication}{NameTheme}{IEL.CORE.Themes.Theme.ExtensionThemeFile}";
+                StreamNewTheme = new(OriginPathTheme, FileMode.Create, FileAccess.ReadWrite);
                 await StreamRead.CopyToAsync(StreamNewTheme);
                 StreamRead.Close();
                 await StreamRead.DisposeAsync();

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OPLAPI.CORE.Themes
+namespace IEL.CORE.Themes
 {
     /// <summary>
     /// Класс информации о палитре
@@ -13,7 +13,7 @@ namespace OPLAPI.CORE.Themes
         /// <summary>
         /// Объект пустой/неизвестной темы
         /// </summary>
-        internal static ThemeInfo UnknownTheme => new();
+        public static ThemeInfo UnknownTheme => new();
 
         /// <summary>
         /// Директория файла темы
