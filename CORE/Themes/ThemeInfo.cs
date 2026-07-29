@@ -1,9 +1,4 @@
-﻿using IEL.CORE.Classes;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace IEL.CORE.Themes
+﻿namespace IEL.CORE.Themes
 {
     /// <summary>
     /// Класс информации о палитре
@@ -23,7 +18,7 @@ namespace IEL.CORE.Themes
         /// <summary>
         /// Словарь спектров палитры
         /// </summary>
-        internal Dictionary<uint, PaletteSpectrum> DictionaryPalette { get; set; }
+        internal Dictionary<uint, byte[]> DictionaryPalette { get; set; }
 
         /// <summary>
         /// Тип перечисления спектров палитры для темы

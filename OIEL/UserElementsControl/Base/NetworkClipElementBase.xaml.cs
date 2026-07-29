@@ -1,7 +1,7 @@
-﻿using IEL.CORE.Classes;
-using IEL.UserElementsControl;
+﻿using IEL.UserElementsControl;
 using IEL.UserElementsControl.Base;
-using Newtonsoft.Json.Linq;
+using LibraryIEL.CORE.Themes.Data;
+using LibraryIEL.CORE.Themes.Palettes;
 using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Interfaces;
 using System.Windows;
@@ -55,29 +55,62 @@ namespace OPLAPI.OIEL.UserElementsControl.Base
         }
         #endregion
 
-        #region PaletteElement
-        /// <summary>
-        /// Данные конкретного свойства
-        /// </summary>
-        public static readonly new DependencyProperty PaletteElementProperty =
-            DependencyProperty.Register("PaletteElement", typeof(PaletteSpectrum), typeof(NetworkClipElementBase),
-                new(PaletteSpectrum.UnknownPaletteSpectrum,
-                    (sender, e) =>
-                    {
-                        PaletteSpectrum Value = (PaletteSpectrum)e.NewValue;
-                        ((NetworkClipElementBase)sender).ButtonUnClip.PaletteElement = Value;
-                        ((IELContainerBase)sender).PaletteElement = Value;
-                    }));
-
+        #region Palette
         /// <summary>
         /// Объект палитры
         /// </summary>
-        public new PaletteSpectrum PaletteElement
+        public override PaletteData Palette
         {
-            get => (PaletteSpectrum)GetValue(PaletteElementProperty);
+            get => base.Palette;
             set
             {
-                SetValue(PaletteElementProperty, value);
+                ButtonUnClip.Palette = value;
+                base.Palette = value;
+            }
+        }
+        #endregion
+
+        #region Background
+        /// <summary>
+        /// Объект отображения фона
+        /// </summary>
+        public override QData Background
+        {
+            get => base.Background;
+            set
+            {
+                ButtonUnClip.Background = value;
+                base.Background = value;
+            }
+        }
+        #endregion
+
+        #region BorderBrush
+        /// <summary>
+        /// Объект отображения границ
+        /// </summary>
+        public override QData BorderBrush
+        {
+            get => base.BorderBrush;
+            set
+            {
+                ButtonUnClip.BorderBrush = value;
+                base.BorderBrush = value;
+            }
+        }
+        #endregion
+
+        #region Foreground
+        /// <summary>
+        /// Объект отображения текста
+        /// </summary>
+        public override QData Foreground
+        {
+            get => base.Foreground;
+            set
+            {
+                ButtonUnClip.Foreground = value;
+                base.Foreground = value;
             }
         }
         #endregion
@@ -172,7 +205,7 @@ namespace OPLAPI.OIEL.UserElementsControl.Base
                 Height = 30d,
                 HeightViewBox = 40d,
                 Text = "0",
-                PaletteElement = PaletteElement,
+                Palette = Palette,
                 Padding = new(2d),
                 BorderThickness = new(0d, 2d, 2d, 2d),
                 CornerRadius = new(0d, 5d, 5d, 0d),

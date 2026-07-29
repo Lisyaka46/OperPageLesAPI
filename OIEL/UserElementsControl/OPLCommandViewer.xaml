@@ -25,7 +25,7 @@
                         </RadialGradientBrush>
                     </Rectangle.Fill>
                 </Rectangle>
-                <IEL:IELButtonImage x:Name="IELButtonDeleteElement" Margin="4,4,4,4" PaletteElement="{DynamicResource Tangerine}" CornerRadius="5,5,5,5" MarginViewBox="1,1,1,1"/>
+                <IEL:IELButtonImage x:Name="IELButtonDeleteElement" Margin="4,4,4,4" CornerRadius="5,5,5,5" MarginViewBox="1,1,1,1"/>
                 <MediaElement x:Name="IndicatorLoading" Stretch="UniformToFill" IsHitTestVisible="False" Grid.ColumnSpan="1" Grid.Column="0" Width="14" Height="14" Source="/UI/Images/Media/Loading/LoadingDefault.mp4" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,-2,0" UnloadedBehavior="Manual">
                     <MediaElement.OpacityMask>
                         <RadialGradientBrush>

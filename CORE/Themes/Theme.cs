@@ -1,5 +1,5 @@
-﻿using IEL.CORE.Classes;
-using IEL.CORE.Themes;
+﻿using IEL.CORE.Themes;
+using LibraryIEL.CORE.Themes.Palettes;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -69,8 +69,8 @@ namespace OPLAPI.CORE.Themes
                     "которая вызвала этот метод");
             uint[] ValuesEnumType = [.. Enum.GetValues(SelectEnumSpectrumType).Cast<uint>()];
             foreach (uint Key in ValuesEnumType)
-                if (!ActiveTheme.DictionaryPalette.TryAdd(Key, PaletteSpectrum.UnknownPaletteSpectrum))
-                    ActiveTheme.DictionaryPalette[Key] = PaletteSpectrum.UnknownPaletteSpectrum;
+                if (!ActiveTheme.DictionaryPalette.TryAdd(Key, PaletteData.UnknownPaletteData))
+                    ActiveTheme.DictionaryPalette[Key] = PaletteData.UnknownPaletteData;
             foreach (uint Key in OldValuesEnumType.Except(ValuesEnumType))
                 ActiveTheme.DictionaryPalette.Remove(Key);
         }
@@ -98,17 +98,17 @@ namespace OPLAPI.CORE.Themes
         /// Если <see cref="Theme.SelectEnumSpectrumType"/> = null; то всегда будет выводиться стандартный спектр темы
         /// </remarks>
         /// <returns>Спектр, который хранится в текущей теме</returns>
-        public static PaletteSpectrum GetValue(object Key)
+        public static PaletteData GetValue(object Key)
         {
-            if (Key == null) return PaletteSpectrum.UnknownPaletteSpectrum;
-            else if (Key.GetType() != SelectEnumSpectrumType) return PaletteSpectrum.UnknownPaletteSpectrum;
+            if (Key == null) return PaletteData.UnknownPaletteData;
+            else if (Key.GetType() != SelectEnumSpectrumType) return PaletteData.UnknownPaletteData;
             try
             {
-                return ActiveTheme.DictionaryPalette[(uint)Key];
+                return new(ActiveTheme.DictionaryPalette[(uint)Key]);
             }
             catch
             {
-                return PaletteSpectrum.UnknownPaletteSpectrum;
+                return PaletteData.UnknownPaletteData;
             }
         }
 
@@ -181,9 +181,9 @@ namespace OPLAPI.CORE.Themes
         /// <param name="BytesDataFile">Данные палитры</param>
         /// <param name="TypeEnumTheme">Тип перечисления, который используется в теме</param>
         /// <returns>Объект словаря палитры спектров</returns>
-        public static Dictionary<uint, PaletteSpectrum> GetDictionaryPalette(byte[] BytesDataFile, out Type TypeEnumTheme)
+        public static Dictionary<uint, byte[]> GetDictionaryPalette(byte[] BytesDataFile, out Type TypeEnumTheme)
         {
-            Dictionary<uint, PaletteSpectrum> Result = [];
+            Dictionary<uint, byte[]> Result = [];
 
             #region ReadType
             ushort CountBytesNameType = BitConverter.ToUInt16(BytesDataFile.AsSpan()[0..2]);
@@ -217,8 +217,8 @@ namespace OPLAPI.CORE.Themes
         /// </summary>
         /// <param name="SourceStream">Поток файла</param>
         /// <param name="Key">Ключ спектра палитры</param>
-        /// <param name="Spectrum">Записываемый спектр палитры</param>
-        public static async Task WritePaletteSpectrum(FileStream SourceStream, object Key, PaletteSpectrum Spectrum)
+        /// <param name="SourceData">Записываемый спектр палитры</param>
+        public static void WritePaletteSpectrum(FileStream SourceStream, object Key, PaletteData SourceData)
         {
             if (!(SourceStream.CanWrite && SourceStream.CanRead))
                 throw new ArgumentException("Невозможно обработать данные содержащиеся в потоке", nameof(SourceStream));
@@ -232,7 +232,7 @@ namespace OPLAPI.CORE.Themes
                 while (true)
                 {
                     Buffer = new byte[4];
-                    await SourceStream.ReadExactlyAsync(Buffer, 0, Buffer.Length);
+                    SourceStream.ReadExactly(Buffer, 0, Buffer.Length);
                     if (BitConverter.ToUInt32(Buffer) == (uint)Key) break;
                 }
             }
@@ -240,13 +240,13 @@ namespace OPLAPI.CORE.Themes
             {
                 SourceStream.Seek(0L, SeekOrigin.End);
                 Buffer = BitConverter.GetBytes((uint)Key);
-                await SourceStream.WriteAsync(Buffer);
+                SourceStream.Write(Buffer);
             }
             finally
             {
-                await SourceStream.WriteAsync(Spectrum.BG.GetSourceBytes());
-                await SourceStream.WriteAsync(Spectrum.BB.GetSourceBytes());
-                await SourceStream.WriteAsync(Spectrum.FG.GetSourceBytes());
+                SourceStream.Write(SourceData.BackGroundData);
+                SourceStream.Write(SourceData.BorderGroundData);
+                SourceStream.Write(SourceData.ForeGroundData);
             }
         }
 
@@ -279,11 +279,11 @@ namespace OPLAPI.CORE.Themes
                 byte[] NameTypeBytes = Encoding.UTF8.GetBytes(ActiveTheme.TypeEnumPalette.Name);
                 await StreamNewTheme.WriteAsync(BitConverter.GetBytes((ushort)NameTypeBytes.Length));
                 await StreamNewTheme.WriteAsync(NameTypeBytes);
-                foreach (KeyValuePair<uint, PaletteSpectrum> Element in ActiveTheme.DictionaryPalette)
+                foreach (KeyValuePair<uint, byte[]> Element in ActiveTheme.DictionaryPalette)
                 {
-                    await StreamNewTheme.WriteAsync(Element.Value.BG.GetSourceBytes());
-                    await StreamNewTheme.WriteAsync(Element.Value.BB.GetSourceBytes());
-                    await StreamNewTheme.WriteAsync(Element.Value.FG.GetSourceBytes());
+                    await StreamNewTheme.WriteAsync(Element.Value);
+                    await StreamNewTheme.WriteAsync(Element.Value);
+                    await StreamNewTheme.WriteAsync(Element.Value);
                 }
             }
             else

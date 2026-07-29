@@ -1,7 +1,6 @@
-﻿using IEL.CORE.Classes.ObjectSettings;
+﻿using IEL.UserElementsControl.Base;
 using System.Windows;
 using FontFamily = System.Windows.Media.FontFamily;
-using IEL.UserElementsControl.Base;
 
 namespace OPLAPI.OIEL.UserElementsControl
 {

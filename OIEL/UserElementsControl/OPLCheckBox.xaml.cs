@@ -1,4 +1,5 @@
 ﻿using IEL.UserElementsControl.Base;
+using LibraryIEL.CORE.Themes.Palettes;
 using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Interfaces;
 using System.Windows;
@@ -194,12 +195,12 @@ namespace OPLAPI.OIEL.UserElementsControl
 
             MouseDown += (sender, e) =>
             {
-                SetActiveSpecrum(IEL.CORE.Enums.StateSpectrum.Used);
+                SetActiveSpecrum(SpectrumColor.Used);
             };
 
             MouseUp += (sender, e) =>
             {
-                SetActiveSpecrum(IEL.CORE.Enums.StateSpectrum.Select);
+                SetActiveSpecrum(SpectrumColor.Select);
             };
 
             MouseLeftButtonUp += (sender, e) => IsChecked = !IsChecked;
