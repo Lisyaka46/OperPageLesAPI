@@ -3,7 +3,9 @@ using LibraryIEL.CORE.Themes.Palettes;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Input;
 
 namespace OPLAPI.CORE.Themes
 {
@@ -21,6 +23,11 @@ namespace OPLAPI.CORE.Themes
         /// Информация о директории файлов тем
         /// </summary>
         private static DirectoryInfo DirectoryThemesInfo = new(DirectoryThemesApplication);
+
+        /// <summary>
+        /// Числовой тип, который используется для обозначения длинны имени типа в файле темы <code>USHORT</code>
+        /// </summary>
+        public static readonly Type EnumTypeNameLength = typeof(ushort);
 
         /// <summary>
         /// Установленные объекты тем
@@ -165,50 +172,39 @@ namespace OPLAPI.CORE.Themes
         }
 
         /// <summary>
-        /// Узнать тип пересисления спектров палитры в теме
-        /// </summary>
-        /// <param name="BytesDataStringType">Массив строки типа перечисления UTF8</param>
-        public static Type? GetTypePalette(ReadOnlySpan<byte> BytesDataStringType)
-        {
-            string NameEnumType = Encoding.UTF8.GetString(BytesDataStringType);
-            return IEL.CORE.Themes.Theme.GetEnumSpectrumType(Assembly.GetCallingAssembly(), NameEnumType) ??
-                throw new Exception("Тип перечисления использующийся в теме не найден");
-        }
-
-        /// <summary>
         /// Создать словарь палитры спектров по байтам данных
         /// </summary>
         /// <param name="BytesDataFile">Данные палитры</param>
         /// <param name="TypeEnumTheme">Тип перечисления, который используется в теме</param>
         /// <returns>Объект словаря палитры спектров</returns>
-        public static Dictionary<uint, byte[]> GetDictionaryPalette(byte[] BytesDataFile, out Type TypeEnumTheme)
+        public static Dictionary<uint, byte[]> GetDictionaryPalette(Span<byte> BytesDataFile, out Type TypeEnumTheme)
         {
-            Dictionary<uint, byte[]> Result = [];
+            Dictionary<uint, byte[]> Result;
+            int Offset = 0, LengthByte;
 
-            #region ReadType
-            ushort CountBytesNameType = BitConverter.ToUInt16(BytesDataFile.AsSpan()[0..2]);
-            BytesDataFile = BytesDataFile[2..];
-            TypeEnumTheme = GetTypePalette(BytesDataFile.AsSpan()[0..CountBytesNameType]) ??
+            LengthByte = Marshal.SizeOf(EnumTypeNameLength);
+            ushort CountBytesNameType = BitConverter.ToUInt16(BytesDataFile.Slice(Offset, LengthByte));
+            Offset += LengthByte;
+
+            string NameEnumType = Encoding.UTF8.GetString(BytesDataFile.Slice(Offset, CountBytesNameType));
+            Offset += CountBytesNameType;
+            TypeEnumTheme = IEL.CORE.Themes.Theme.GetEnumSpectrumType(Assembly.GetCallingAssembly(), NameEnumType) ??
                 throw new Exception("Тип перечисления использующийся в теме не найден");
             uint[] ValuesEnumType = [.. Enum.GetValues(TypeEnumTheme).Cast<uint>()];
-            #endregion
+            Result = new(ValuesEnumType.Length);
+            foreach (uint Key in ValuesEnumType)
+                Result[Key] = PaletteData.UnknownPaletteData;
 
-            int CountChunks = BytesDataFile.Length / PaletteSpectrum.CountQDataSpectrum;
-            if (CountChunks > ValuesEnumType.Length)
+            LengthByte = Marshal.SizeOf(IEL.CORE.Themes.Theme.EnumUnderlyingTypePalette);
+            uint SourceKey;
+            while (Offset < BytesDataFile.Length)
             {
-                BytesDataFile = BytesDataFile[..(PaletteSpectrum.CountQDataSpectrum * ValuesEnumType.Length)];
-                CountChunks = ValuesEnumType.Length;
+                SourceKey = BitConverter.ToUInt32(BytesDataFile.Slice(Offset, LengthByte));
+                Offset += LengthByte;
+                Result[SourceKey] = BytesDataFile.Slice(Offset, PaletteData.CountBytes).ToArray();
+                Offset += PaletteData.CountBytes;
             }
 
-            byte[][] ChunkDataTheme = new byte[CountChunks][];
-            for (int i = 0; i < CountChunks; i++)
-            {
-                ChunkDataTheme[i] = new byte[PaletteSpectrum.CountQDataSpectrum];
-                Array.Copy(BytesDataFile, i * PaletteSpectrum.CountQDataSpectrum, ChunkDataTheme[i], 0, PaletteSpectrum.CountQDataSpectrum);
-            }
-
-            for (int i = 0; i < ValuesEnumType.Length; i++)
-                Result.Add(ValuesEnumType[i], new(ChunkDataTheme[i]));
             return Result;
         }
 
