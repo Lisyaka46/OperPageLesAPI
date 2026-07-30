@@ -1,0 +1,79 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<PlatformTarget>x64</PlatformTarget>
+	<PackageId>OPLAPI</PackageId>
+	<Title>OperPageLesAPI</Title>
+	<Version>1.0.7</Version>
+	<Description>API для взаимодействия с системой OperPageLes</Description>
+	<PackageIcon>API.png</PackageIcon>
+	<PackageTags>WPF;OPL;Library;API</PackageTags>
+	  
+	<!-- Атрибуты автора и компании -->
+	<Authors>Lisyaka46</Authors>
+	<!--<Company>Lisyaka46</Company>-->
+	<Copyright>Copyright (c) 2026 Lisyaka46</Copyright>
+	  
+	<!-- Ссылка на репозиторий (чтобы GitHub связался с пакетом) -->
+	<RepositoryUrl>https://github.com/Lisyaka46/OperPageLesAPI</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="VSIX\**" />
+    <EmbeddedResource Remove="VSIX\**" />
+    <None Remove="VSIX\**" />
+    <Page Remove="VSIX\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="API.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <ProjectReference Include="..\..\IEL\LibraryIEL\LibraryIEL.csproj" />
+	  <ProjectReference Include="..\..\InterpreterCommand\Interpreter\Interpreter.csproj">
+		  <PrivateAssets>all</PrivateAssets>
+	  </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="API.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  <Pack>true</Pack>
+	  <PackagePath>\</PackagePath>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="OIEL\UserElementsControl\OPLBrowserPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="OIEL\UserElementsControl\OPLCheckBox.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="OIEL\UserElementsControl\OPLCommandViewer.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="OIEL\UserElementsControl\OPLInley.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="OIEL\UserElementsControl\OPLVisualElementIM.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="OIEL\UserElementsControl\OPLVisualLoading.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>
