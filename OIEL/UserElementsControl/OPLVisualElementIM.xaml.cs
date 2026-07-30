@@ -1,5 +1,7 @@
-﻿using IEL.CORE.Classes;
-using IEL.UserElementsControl.Base;
+﻿using IEL.UserElementsControl.Base;
+using LibraryIEL.CORE.Themes;
+using LibraryIEL.CORE.Themes.Data;
+using LibraryIEL.CORE.Themes.Palettes;
 using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Interfaces;
 using System.Reflection;
@@ -144,27 +146,58 @@ namespace OPLAPI.OIEL.UserElementsControl
         }
         #endregion
 
-        #region PaletteElement
-        /// <summary>
-        /// Данные конкретного свойства
-        /// </summary>
-        public static readonly DependencyProperty PaletteElementProperty =
-            DependencyProperty.Register("PaletteElement", typeof(PaletteSpectrum), typeof(OPLVisualElementIM),
-                new(
-                    (sender, e) =>
-                    {
-                        ((OPLVisualElementIM)sender).ButtonApplication.PaletteElement = (PaletteSpectrum)e.NewValue;
-                    }));
-
+        #region Palette
         /// <summary>
         /// Объект палитры
         /// </summary>
-        public PaletteSpectrum PaletteElement
+        public PaletteData Palette
         {
-            get => ButtonApplication.PaletteElement;
+            get => ButtonApplication.Palette;
             set
             {
-                SetValue(PaletteElementProperty, value);
+                ButtonApplication.Palette = value;
+            }
+        }
+        #endregion
+
+        #region Background
+        /// <summary>
+        /// Объект отображения фона
+        /// </summary>
+        public new QData Background
+        {
+            get => ButtonApplication.Background;
+            set
+            {
+                ButtonApplication.Background = value;
+            }
+        }
+        #endregion
+
+        #region BorderBrush
+        /// <summary>
+        /// Объект отображения границ
+        /// </summary>
+        public new QData BorderBrush
+        {
+            get => ButtonApplication.BorderBrush;
+            set
+            {
+                ButtonApplication.BorderBrush = value;
+            }
+        }
+        #endregion
+
+        #region Foreground
+        /// <summary>
+        /// Объект отображения текста
+        /// </summary>
+        public new QData Foreground
+        {
+            get => ButtonApplication.Foreground;
+            set
+            {
+                ButtonApplication.Foreground = value;
             }
         }
         #endregion
@@ -248,15 +281,24 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// </summary>
         public IELButtonBase.ActivateHandler? OnActivateMouseRight { get; set; }
 
-        //
-        public BrushSettingQ SourceBackground => ButtonApplication.SourceBackground;
+        /// <summary>
+        /// Объект отображения фона
+        /// </summary>
+        public SolidColorBrush SourceBrushBackground => ButtonApplication.SourceBackground.SourceBrush;
 
-        //
-        public BrushSettingQ SourceBorderBrush => ButtonApplication.SourceBorderBrush;
+        /// <summary>
+        /// Объект отображения границ
+        /// </summary>
+        public SolidColorBrush SourceBrushBorderBrush => ButtonApplication.SourceBorderBrush.SourceBrush;
 
-        //
-        public BrushSettingQ SourceForeground => ButtonApplication.SourceForeground;
+        /// <summary>
+        /// Объект отображения текста
+        /// </summary>
+        public SolidColorBrush SourceBrushForeground => ButtonApplication.SourceForeground.SourceBrush;
 
+        /// <summary>
+        /// Инициализировать объект визуализирования образа объекта
+        /// </summary>
         public OPLVisualElementIM() 
         {
             InitializeComponent();

@@ -1,12 +1,10 @@
-﻿using IEL.CORE.Classes;
-using OPLAPI.CORE.Animation;
+﻿using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Interfaces;
 using OPLAPI.OIEL.CORE.Browser;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
 using System.Windows.Media.Animation;
 using Brush = System.Windows.Media.Brush;
 using FontFamily = System.Windows.Media.FontFamily;
@@ -243,7 +241,7 @@ namespace OPLAPI.OIEL.UserElementsControl
             ActivateManagerPage = true;
             if (ActivateIndex > -1)
             {
-                SourceInlays[ActivateIndex].SourceBackground.SetUsedState(false);
+                SourceInlays[ActivateIndex].SourceBackground.UsedState = false;
                 _ActivateIndex = -1;
             }
             if (ActivateCustomPage)
@@ -308,7 +306,9 @@ namespace OPLAPI.OIEL.UserElementsControl
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
             PageBrowser ElementAppPage = MainPageBrowser.InitPageBrowserFromType(AppPage);
             ElementAppPage.ManagerAnimation = ManagerAnimation;
-            return AddInlayPage(in ElementAppPage, AppPage.VisualELement.PaletteElement, true);
+            OPLInlay Inlay = AddInlayPage(in ElementAppPage, true);
+            Inlay.Palette = AppPage.VisualELement.Palette;
+            return Inlay;
         }
         #endregion
 
@@ -317,12 +317,10 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// Добавить новую страницу
         /// </summary>
         /// <param name="Content">Добавляемая страница в баузер страниц</param>
-        /// <param name="SpectrumInlay">Спетр цвета для отображения вкладки</param>
         /// <param name="Activate">Активировать сразу или нет страницу</param>
-        public OPLInlay AddInlayPage(in PageBrowser Content, PaletteSpectrum SpectrumInlay, bool Activate = true)
+        public OPLInlay AddInlayPage(in PageBrowser Content, bool Activate = true)
         {
             OPLInlay InlaySource = CreateInlay(Content);
-            InlaySource.PaletteElement = SpectrumInlay;
 
             SourceInlays.Add(InlaySource);
             StackPanelInlays.Children.Add(InlaySource);
@@ -407,21 +405,21 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// <exception cref="Exception">Исключение при пустой странице в найденой вкладке</exception>
         public void ActivateInlayIndex(Index index)
         {
-            if (index.Value == ActivateIndex && SourceInlays[index].SourceBackground.GetUsedState()) return;
+            if (index.Value == ActivateIndex && SourceInlays[index].SourceBackground.UsedState) return;
             else if (ActivateManagerPage) ActivateManagerPage = false;
             PageBrowser Page = SourceInlays[index].Content ?? throw new Exception("Объект заголовка не может быть без страницы!");
             //SourceDoubleAnimation.Duration = TimeSpan.FromMilliseconds(300d);
             if (ActivateIndex > -1 && SourceInlays.Count > ActivateIndex)
             {
                 OPLInlay BackInlay = SourceInlays[ActivateIndex];
-                BackInlay.SourceBackground.SetUsedState(false);
+                BackInlay.SourceBackground.UsedState = false;
                 //SourceDoubleAnimation.To = 45d;
                 //BackInlay.BeginAnimation(HeightProperty, SourceDoubleAnimation, HandoffBehavior.SnapshotAndReplace);
             }
             OPLInlay NextInlay = SourceInlays[index];
             //SourceDoubleAnimation.To = 50d;
             //NextInlay.BeginAnimation(HeightProperty, SourceDoubleAnimation, HandoffBehavior.SnapshotAndReplace);
-            NextInlay.SourceBackground.SetUsedState(true);
+            NextInlay.SourceBackground.UsedState = true;
             MainPageController.NextElement(Page, index.Value >= ActivateIndex);
             _ActivateIndex = index.Value;
             //Page.EventFocusPage?.Invoke(Page);
@@ -479,7 +477,7 @@ namespace OPLAPI.OIEL.UserElementsControl
                 if (ActivateManagerPage) ActivateManagerPage = false;
                 else HistoryBackPage = MainPageController.ActualPage;
                 if (ActivateIndex > -1)
-                    SourceInlays[ActivateIndex].SourceBackground.SetUsedState(false);
+                    SourceInlays[ActivateIndex].SourceBackground.UsedState = false;
                 BorderInlays.Height = 0d;
                 ActivateCustomPage = true;
             }
