@@ -244,6 +244,7 @@ namespace OPLAPI.CORE.Themes
                 SourceStream.Write(SourceData.BorderGroundData);
                 SourceStream.Write(SourceData.ForeGroundData);
             }
+            SourceStream.Seek(0L, SeekOrigin.Begin);
         }
 
         /// <summary>
