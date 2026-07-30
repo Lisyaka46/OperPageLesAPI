@@ -63,7 +63,7 @@ namespace OPLAPI.OIEL.CORE.Browser.Base
             if (SourceTypePageBrowser.BaseType != typeof(PageBrowser))
                 throw new ArgumentException("Не верный входной тип для создания объекта для представления страничного приложения");
             return (PageBrowser?)Activator.CreateInstance(SourceTypePageBrowser) ??
-                throw new Exception($"Неудалось создать экземпляр главной страницы страничного приложения \"{SourceTypePageBrowser.FullName}\"");
+                throw new InvalidOperationException($"Неудалось создать экземпляр главной страницы страничного приложения \"{SourceTypePageBrowser.FullName}\"");
         }
     }
 }

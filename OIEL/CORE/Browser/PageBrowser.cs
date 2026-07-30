@@ -22,10 +22,7 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// </summary>
         public static readonly new DependencyProperty TitleProperty =
             DependencyProperty.Register("Title", typeof(string), typeof(PageBrowser),
-                new(string.Empty,
-                    (sender, e) =>
-                    {
-                    }));
+                new(string.Empty));
 
         /// <summary>
         /// Текст заголовка
@@ -43,10 +40,7 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// </summary>
         public static readonly DependencyProperty DescriptionProperty =
             DependencyProperty.Register("Description", typeof(string), typeof(PageBrowser),
-                new(string.Empty,
-                    (sender, e) =>
-                    {
-                    }));
+                new(string.Empty));
 
         /// <summary>
         /// Текст описания
@@ -64,10 +58,7 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// </summary>
         public static readonly DependencyProperty IconProperty =
             DependencyProperty.Register("Icon", typeof(ImageSource), typeof(PageBrowser),
-                new(null,
-                    (sender, e) =>
-                    {
-                    }));
+                new(null));
 
         /// <summary>
         /// Иконка страницы
@@ -130,6 +121,8 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// </summary>
         public void Dispose()
         {
+            Content = null;
+            SourcePanelAction = null;
             Disposed?.Invoke(this);
             GC.SuppressFinalize(this);
         }

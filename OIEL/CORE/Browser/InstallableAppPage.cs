@@ -32,12 +32,12 @@ namespace OPLAPI.OIEL.CORE.Browser
         public InstallableAppPage(string SourcePath) : base()
         {
             if (!File.Exists(SourcePath) || !Path.GetExtension(SourcePath).Equals(".dll"))
-                throw new Exception("Данный файл не найден или его расширение не подходит под устанавливаемое страничное приложение .dll ...");
+                throw new FileNotFoundException("Данный файл не найден или его расширение не подходит под устанавливаемое страничное приложение .dll ...");
 
             AssemblyPage = Assembly.LoadFrom(SourcePath);
             Type[] AssemplyTypesPage = [.. AssemblyPage.ExportedTypes];
             Type TypeMainPage = AssemplyTypesPage.FirstOrDefault((i) => i.BaseType == typeof(PageBrowser)) ??
-                throw new Exception("Неудалось получить тип главной страницы страничного приложения");
+                throw new NullReferenceException("Неудалось получить тип главной страницы страничного приложения");
             SetPropetriesFromObjectPage(TypeMainPage, AssemblyPage);
         }
     }

@@ -70,12 +70,12 @@ namespace OPLAPI.OIEL.CORE.Browser
         {
             this.TypePage = TypePage;
             PropertyInfo PropetryTitle = TypePage.GetProperty(nameof(PageBrowser.Title)) ??
-                throw new Exception($"Главная страница страничного приложения не содержит обязательного свойства \"{nameof(PageBrowser.Title)}\"");
+                throw new InvalidOperationException($"Главная страница страничного приложения не содержит обязательного свойства \"{nameof(PageBrowser.Title)}\"");
             PropertyInfo PropetryIcon = TypePage.GetProperty(nameof(PageBrowser.Icon)) ??
-                throw new Exception($"Главная страница страничного приложения не содержит обязательного свойства \"{nameof(PageBrowser.Icon)}\"");
+                throw new InvalidOperationException($"Главная страница страничного приложения не содержит обязательного свойства \"{nameof(PageBrowser.Icon)}\"");
             object ElementPage =
                 (SourceAssembly != null ? SourceAssembly.CreateInstance(TypePage.FullName ?? string.Empty) : Activator.CreateInstance(TypePage)) ??
-                throw new Exception($"Неудалось создать экземпляр главной страницы страничного приложения \"{TypePage.FullName}\"");
+                throw new InvalidOperationException($"Неудалось создать экземпляр главной страницы страничного приложения \"{TypePage.FullName}\"");
             TitlePage = (string?)PropetryTitle.GetValue(ElementPage) ?? "Неизвестный";
             VisualELement.Source = (ImageSource?)PropetryIcon.GetValue(ElementPage);
         }
