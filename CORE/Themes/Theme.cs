@@ -52,9 +52,9 @@ namespace OPLAPI.CORE.Themes
             get => ActiveTheme.TypeEnumPalette;
             private set
             {
-                if (value == null || (value.GetType().IsEnum && Enum.GetUnderlyingType(value) != IEL.CORE.Themes.Theme.EnumUnderlyingTypePalette))
-                    ActiveTheme.TypeEnumPalette = value;
-                else throw new ArgumentException("Невозможно выделить тип, который не подходит под (Enum : uint)");
+                if (value == null || (!value.IsEnum && Enum.GetUnderlyingType(value) != IEL.CORE.Themes.Theme.EnumUnderlyingTypePalette))
+                    throw new ArgumentException("Невозможно выделить тип, который не подходит под (Enum : uint)");
+                else ActiveTheme.TypeEnumPalette = value;
             }
         }
 
