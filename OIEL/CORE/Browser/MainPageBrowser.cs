@@ -1,5 +1,6 @@
 ﻿using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Interfaces;
+using OPLAPI.OIEL.CORE.Browser.Base;
 using OPLAPI.OIEL.CORE.Interfaces.Browser;
 using OPLAPI.OIEL.UserElementsControl;
 using System.Collections.ObjectModel;
@@ -98,17 +99,6 @@ namespace OPLAPI.OIEL.CORE.Browser
             OPLAnimationManager.AnimateTakingZeroFromTo(ManagerAnimation, VisualAppPage, OpacityProperty,
                 0d, 1d, TimeSpan.FromMilliseconds(500d));
             MainPanelAllApplicationPages.Children.Add(VisualAppPage);
-        }
-
-        /// <summary>
-        /// Инициализировать страницу по хранимому типу в иконке
-        /// </summary>
-        /// <param name="AppPage">Объект страничного приложения</param>
-        internal static PageBrowser InitPageBrowserFromType<T>(in T AppPage) where T : AppPage
-        {
-            PageBrowser ElementAppPage = AppPage.InicializeAppPage();
-            ElementAppPage.Title = AppPage.TitlePage;
-            return ElementAppPage;
         }
         #endregion
     }

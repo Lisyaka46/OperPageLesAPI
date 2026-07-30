@@ -1,6 +1,8 @@
 ﻿using OPLAPI.CORE.Animation;
+using OPLAPI.CORE.Browser;
 using OPLAPI.CORE.Interfaces;
 using OPLAPI.OIEL.CORE.Browser;
+using OPLAPI.OIEL.CORE.Browser.Base;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,40 +26,22 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// <summary>
         /// Массив объектов страниц
         /// </summary>
-        private readonly List<OPLInlay> SourceInlays;
+        private readonly List<Inlay> Inlays;
 
         /// <summary>
-        /// Массив активных вкладок браузера
+        /// Активный индекс вкладки в браузере
         /// </summary>
-        public ReadOnlyCollection<OPLInlay> Inlays => SourceInlays.AsReadOnly();
-
-        /// <summary>
-        /// Количество вкладок в браузере страниц
-        /// </summary>
-        public int InlaysCount => SourceInlays.Count;
-
-        private int _ActivateIndex = -1;
-        /// <summary>
-        /// Индекс активированной вкладки
-        /// </summary>
-        public int ActivateIndex => _ActivateIndex;
+        public int ActualIndex { get; private set; }
 
         /// <summary>
         /// Активная вкладка в браузере
         /// </summary>
-        public OPLInlay? ActualInlay => ActivateIndex > -1 ? SourceInlays[ActivateIndex] : null;
+        public Inlay? ActualInlay => ActualIndex > -1 ? Inlays[ActualIndex] : null;
 
-        #region Events
         /// <summary>
         /// Событие закрытия вкладки
         /// </summary>
-        public event EventHandler<OPLInlay> EventCloseInlay = null!;
-
-        /// <summary>
-        /// Событие создания кового страничного приложения
-        /// </summary>
-        public event EventHandler<OPLInlay> NewInicializedAppPage = null!;
-        #endregion
+        public event EventHandler<Inlay>? AddNewInlay;
 
         /// <summary>
         /// Страница выбора приложения страницы для добавления её в браузер
@@ -192,7 +176,7 @@ namespace OPLAPI.OIEL.UserElementsControl
         public OPLBrowserPage()
         {
             InitializeComponent();
-            SourceInlays = [];
+            Inlays = [];
             StackPanelInlays = new()
             {
                 Orientation = System.Windows.Controls.Orientation.Horizontal,
@@ -239,10 +223,10 @@ namespace OPLAPI.OIEL.UserElementsControl
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
             else if (ActivateManagerPage) return;
             ActivateManagerPage = true;
-            if (ActivateIndex > -1)
+            if (ActualIndex > -1)
             {
-                SourceInlays[ActivateIndex].SourceBackground.UsedState = false;
-                _ActivateIndex = -1;
+                Inlays[ActualIndex].Visual?.SourceBackground.UsedState = false;
+                ActualIndex = -1;
             }
             if (ActivateCustomPage)
             {
@@ -257,7 +241,7 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// Добавить страничное приложение в менеджер приложений страниц
         /// </summary>
         /// <param name="TypeAppPage">Тип создаваемого приложения страницы</param>
-        public async Task AddNewAppPage(Type TypeAppPage)
+        public void AddNewAppPage(Type TypeAppPage)
         {
             if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
             AppPage Source = SourceManagerAppPage.AddNewAppPage(TypeAppPage);
@@ -275,171 +259,75 @@ namespace OPLAPI.OIEL.UserElementsControl
             Source.ApplicationPageActivate += Source_ApplicationPageActivate;
         }
 
-        private void Source_ApplicationPageActivate(object? sender, AppPage e)
+        private void Source_ApplicationPageActivate(object? sender, Type e)
         {
-            PageBrowser? InicializeInlay = SearchAnyPageType(e.TypePage);
-            if (InicializeInlay != null)
-                ActivateInlayInBrowserPage(InicializeInlay);
+            Index? SearchIndex = SearchInlayFromType(e);
+            if (SearchIndex.HasValue)
+                ActivateInlay(SearchIndex.Value);
             else
             {
-                NewInicializedAppPage.Invoke(sender, InitAppPageFromType(in e));
+                Inlay SourceInlay = AddInlay(AppPageBase.InicializeAppPage(e));
+                AddNewInlay?.Invoke(sender, SourceInlay);
+                ActivateInlay(^1);
             }
-        }
-
-        private void Source_ApplicationPageActivate(object? sender, InstallableAppPage e)
-        {
-            PageBrowser? InicializeInlay = SearchAnyPageType(e.TypePage);
-            if (InicializeInlay != null)
-                ActivateInlayInBrowserPage(InicializeInlay);
-            else
-            {
-                NewInicializedAppPage.Invoke(sender, InitAppPageFromType(in e));
-            }
-        }
-
-        /// <summary>
-        /// Инициализировать страницу по хранимому типу в иконке
-        /// </summary>
-        /// <param name="AppPage">Объект данных страничного приложения</param>
-        private OPLInlay InitAppPageFromType<T>(in T AppPage) where T : AppPage
-        {
-            if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
-            PageBrowser ElementAppPage = MainPageBrowser.InitPageBrowserFromType(AppPage);
-            ElementAppPage.ManagerAnimation = ManagerAnimation;
-            OPLInlay Inlay = AddInlayPage(in ElementAppPage, true);
-            Inlay.Palette = AppPage.VisualELement.Palette;
-            return Inlay;
         }
         #endregion
 
         #region ManipulateInlay
         /// <summary>
-        /// Добавить новую страницу
+        /// Создать новый объект вкладки
         /// </summary>
-        /// <param name="Content">Добавляемая страница в баузер страниц</param>
-        /// <param name="Activate">Активировать сразу или нет страницу</param>
-        public OPLInlay AddInlayPage(in PageBrowser Content, bool Activate = true)
+        /// <param name="Content">Страница содержимого вкладки</param>
+        private Inlay AddInlay(in PageBrowser Content)
         {
-            OPLInlay InlaySource = CreateInlay(Content);
-
-            SourceInlays.Add(InlaySource);
-            StackPanelInlays.Children.Add(InlaySource);
-            InlaySource.UpdateLayout();
-
-            OPLAnimationManager.AnimateTakingZeroFromTo(ManagerAnimation, InlaySource, WidthProperty,
-                0d, InlaySource.ActualWidth, TimeSpan.FromMilliseconds(350d));
-            OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, InlaySource, OpacityProperty,
-                1d, TimeSpan.FromMilliseconds(400d));
-
-            //SourceDoubleAnimation.To = InlaySource.ActualWidth;
-            //InlaySource.BeginAnimation(WidthProperty, SourceDoubleAnimation, HandoffBehavior.SnapshotAndReplace);
-
-            if (Activate) ActivateInlayIndex(SourceInlays.Count - 1);
-            return InlaySource;
-        }
-
-        /// <summary>
-        /// Создать вкладку в браузере
-        /// </summary>
-        /// <param name="Content">Страница ссылки</param>
-        /// <returns>Созданная вкладка</returns>
-        private OPLInlay CreateInlay(PageBrowser Content)
-        {
-            OPLInlay Inlay = new(Content)
+            Inlay InlayData = Inlay.InicializeInlay(Content);
+            InlayData.Closed += (sender, e) =>
             {
-                HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Bottom,
-                BorderThickness = new(1.5d),
-                CornerRadius = new(12),
-                Margin = new(2),
-                Opacity = 0d,
-                IsAnimatedSettingQ = false,
-                IsEnabledSettingQ = false,
+                e.Visual?.IsEnabled = false;
+                DeleteInlayPage(e, ActualIndex == Inlays.IndexOf(e));
             };
-            Inlay.OnActivateCloseInlay += (sender, e) =>
+            InlayData.Activated += (sender, e) =>
             {
-                //if (ScrollMouseUse) return;
-                e.IsEnabled = false;
-                DeleteInlayPage(e, ActivateIndex == SourceInlays.IndexOf(e));
-                EventCloseInlay.Invoke(this, e);
-            };
-            Inlay.MouseLeftButtonUp += (sender, e) =>
-            {
-                //if (ScrollMouseUse)
-                //{
-                //    ScrollMouseUse = false;
-                //    return;
-                //}
-                ActivateInlayInBrowserPage(Inlay.Content);
+                ActivateInlay(Inlays.IndexOf(e));
             };
             Binding binding = new()
             {
                 Mode = BindingMode.OneWay,
                 Source = (FontFamily)Application.Current.Resources["Bree CYR var"]
             };
-            BindingOperations.SetBinding(Inlay, OPLInlay.FontFamilyProperty, binding);
-            //Inlay.MouseHover += (sender, e) =>
-            //{
-            //    if (Inlay.Content.Description.Length == 0) return;
-            //    EventOnDescriptionInlay?.Invoke(Inlay, Inlay.Content.Description);
-            //};
-            //Inlay.MouseLeave += (sender, e) =>
-            //{
-            //    if (Inlay.Content.Description.Length == 0) return;
-            //    EventOffDescriptionInlay?.Invoke();
-            //};
-            //Inlay.MouseDown += (sender, e) =>
-            //{
-            //    if (Inlay.Content.Description.Length == 0) return;
-            //    EventOffDescriptionInlay?.Invoke();
-            //};
-            return Inlay;
+            BindingOperations.SetBinding(InlayData.Visual, OPLInlay.FontFamilyProperty, binding);
+
+            Inlays.Add(InlayData);
+            StackPanelInlays.Children.Add(InlayData.Visual);
+
+            OPLAnimationManager.AnimateTakingZeroFromTo(ManagerAnimation, InlayData.Visual, WidthProperty,
+                0d, InlayData.Visual.ActualWidth, TimeSpan.FromMilliseconds(350d));
+            OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, InlayData.Visual, OpacityProperty,
+                1d, TimeSpan.FromMilliseconds(400d));
+            return InlayData;
         }
         #endregion
 
-        #region ManipulateInlay
         /// <summary>
         /// Открыть страницу по индексу
         /// </summary>
-        /// <param name="index">Индекс открываемой страницы</param>
-        /// <exception cref="Exception">Исключение при пустой странице в найденой вкладке</exception>
-        public void ActivateInlayIndex(Index index)
+        /// <param name="SourceIndex">Индекс открываемой страницы</param>
+        public void ActivateInlay(Index SourceIndex)
         {
-            if (index.Value == ActivateIndex && SourceInlays[index].SourceBackground.UsedState) return;
+            if (SourceIndex.Value >= Inlays.Count) throw new ArgumentOutOfRangeException(nameof(SourceIndex));
+            else if (SourceIndex.Value == ActualIndex && Inlays[SourceIndex].Visual.SourceBackground.UsedState) return;
             else if (ActivateManagerPage) ActivateManagerPage = false;
-            PageBrowser Page = SourceInlays[index].Content ?? throw new Exception("Объект заголовка не может быть без страницы!");
-            //SourceDoubleAnimation.Duration = TimeSpan.FromMilliseconds(300d);
-            if (ActivateIndex > -1 && SourceInlays.Count > ActivateIndex)
+            PageBrowser Page = Inlays[SourceIndex].ContentPage;
+            if (ActualIndex > -1 && Inlays.Count > ActualIndex)
             {
-                OPLInlay BackInlay = SourceInlays[ActivateIndex];
-                BackInlay.SourceBackground.UsedState = false;
-                //SourceDoubleAnimation.To = 45d;
-                //BackInlay.BeginAnimation(HeightProperty, SourceDoubleAnimation, HandoffBehavior.SnapshotAndReplace);
+                Inlay BackInlay = Inlays[ActualIndex];
+                BackInlay.Visual.SourceBackground.UsedState = false;
             }
-            OPLInlay NextInlay = SourceInlays[index];
-            //SourceDoubleAnimation.To = 50d;
-            //NextInlay.BeginAnimation(HeightProperty, SourceDoubleAnimation, HandoffBehavior.SnapshotAndReplace);
-            NextInlay.SourceBackground.UsedState = true;
-            MainPageController.NextElement(Page, index.Value >= ActivateIndex);
-            _ActivateIndex = index.Value;
-            //Page.EventFocusPage?.Invoke(Page);
+            Inlay NextInlay = Inlays[SourceIndex];
+            NextInlay.Visual.SourceBackground.UsedState = true;
+            MainPageController.NextElement(Page, SourceIndex.Value >= ActualIndex);
+            ActualIndex = SourceIndex.Value;
         }
-
-        /// <summary>
-        /// Открыть страницу по элементу
-        /// </summary>
-        /// <param name="Page">Открываемая вкладка страницы</param>
-        /// <exception cref="Exception">Исключение при пустой странице в найденой вкладке</exception>
-        public void ActivateInlayInBrowserPage(PageBrowser Page)
-        {
-            try
-            {
-                PageBrowser?[] Pages = [.. SourceInlays.Select((i) => i.Content)];
-                ActivateInlayIndex(Array.IndexOf(Pages, Page));
-            }
-            catch { }
-        }
-        #endregion
 
         /// <summary>
         /// Вернуться назад к странице до открытия кастомных страниц
@@ -450,9 +338,9 @@ namespace OPLAPI.OIEL.UserElementsControl
             {
                 BorderInlays.Height = 55d;
                 ActivateCustomPage = false;
-                if (ActivateIndex > -1)
+                if (ActualIndex > -1)
                 {
-                    ActivateInlayIndex(_ActivateIndex);
+                    ActivateInlay(ActualIndex);
                 }
                 else
                     MainPageController.NextElement(HistoryBackPage, false);
@@ -476,8 +364,8 @@ namespace OPLAPI.OIEL.UserElementsControl
             {
                 if (ActivateManagerPage) ActivateManagerPage = false;
                 else HistoryBackPage = MainPageController.ActualPage;
-                if (ActivateIndex > -1)
-                    SourceInlays[ActivateIndex].SourceBackground.UsedState = false;
+                if (ActualIndex > -1)
+                    Inlays[ActualIndex].Visual?.SourceBackground.UsedState = false;
                 BorderInlays.Height = 0d;
                 ActivateCustomPage = true;
             }
@@ -488,13 +376,13 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// Сделать поиск страницы по типу
         /// </summary>
         /// <returns>Найденная страница</returns>
-        public PageBrowser? SearchAnyPageType(Type SourceType)
+        public Index? SearchInlayFromType(Type SourceType)
         {
-            if (InlaysCount == 0 || SourceType.BaseType != typeof(PageBrowser)) return null;
-            foreach (OPLInlay Inlay in SourceInlays)
+            if (Inlays.Count == 0 || SourceType.BaseType != typeof(PageBrowser)) return null;
+            for (int i = 0; i < Inlays.Count; i++)
             {
-                if (Inlay.Content?.GetType() == SourceType)
-                    return Inlay.Content;
+                if (Inlays[i].ContentPage.GetType() == SourceType)
+                    return i;
             }
             return null;
         }
@@ -504,53 +392,53 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// </summary>
         /// <param name="inlay">Объект вкладки</param>
         /// <param name="ActivateNextInlay">Активировать ли следующую после удалённой вкладки вкладку</param>
-        public void DeleteInlayPage(OPLInlay inlay, bool ActivateNextInlay = true)
+        public void DeleteInlayPage(Inlay inlay, bool ActivateNextInlay = true)
         {
-            if (SourceInlays.IndexOf(inlay) is int Index && Index == -1) return;
-            int IndexNext = NextIndex(Index, InlaysCount - 1);
-            OPLInlay ActualInlay = SourceInlays[Index];
-            ActualInlay.Content?.Dispose();
-
-            if (ManagerAnimation != null)
+            if (Inlays.IndexOf(inlay) is int Index && Index == -1) return;
+            int IndexNext = NextIndex(Index, Inlays.Count - 1);
+            Inlay SourceInlay = Inlays[Index];
+            SourceInlay.ContentPage?.Dispose();
+            if (SourceInlay.Visual == null) return;
+            else if (ManagerAnimation != null)
             {
-                OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, ActualInlay, MarginProperty,
+                OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, SourceInlay.Visual, MarginProperty,
                     new Thickness(0), TimeSpan.FromMilliseconds(350d));
-                OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, ActualInlay, OpacityProperty,
+                OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, SourceInlay.Visual, OpacityProperty,
                     0d, TimeSpan.FromMilliseconds(350d));
                 DoubleAnimation animationDouble = ManagerAnimation.GetCloneAnimationElementFromType<DoubleAnimation>();
                 animationDouble.Duration = TimeSpan.FromMilliseconds(400d);
-                animationDouble.From = ActualInlay.Width;
+                animationDouble.From = SourceInlay.Visual.Width;
                 animationDouble.To = 0d;
                 animationDouble.FillBehavior = FillBehavior.Stop;
                 animationDouble.Completed += (sender, e) =>
                 {
-                    ActualInlay.Width = 0d;
-                    StackPanelInlays.Children.Remove(ActualInlay);
+                    SourceInlay.Visual.Width = 0d;
+                    StackPanelInlays.Children.Remove(SourceInlay.Visual);
                 };
-                ActualInlay.BeginAnimation(WidthProperty, animationDouble);
+                SourceInlay.Visual.BeginAnimation(WidthProperty, animationDouble);
             }
             else
             {
                 //ActualInlay.Width = 0d;
-                StackPanelInlays.Children.Remove(ActualInlay);
+                StackPanelInlays.Children.Remove(SourceInlay.Visual);
             }
-            SourceInlays.RemoveAt(Index);
+            Inlays.RemoveAt(Index);
 
             if (ActivateNextInlay)
             {
                 if (IndexNext == -1)
                 {
                     if (SourceManagerAppPage == null) throw ExceptionManagerAppPage;
-                    _ActivateIndex = -1;
+                    ActualIndex = -1;
                     MainPageController.CloseElement();
                     MainPageController.NextElement(SourceManagerAppPage, true);
                 }
                 else
                 {
-                    ActivateInlayIndex(IndexNext);
+                    ActivateInlay(IndexNext);
                 }
             }
-            else if (ActivateIndex >= Index) _ActivateIndex--;
+            else if (ActualIndex >= Index) ActualIndex--;
         }
 
         /// <summary>

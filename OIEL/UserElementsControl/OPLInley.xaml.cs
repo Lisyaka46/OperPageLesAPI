@@ -1,5 +1,6 @@
 ﻿using IEL.UserElementsControl;
 using IEL.UserElementsControl.Base;
+using LibraryIEL.CORE.Themes.Palettes;
 using OPLAPI.OIEL.CORE.Browser;
 using System.Windows;
 using System.Windows.Media;
@@ -14,7 +15,7 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// <summary>
         /// Объект события активации закрытия вкладки
         /// </summary>
-        public event EventHandler<OPLInlay> OnActivateCloseInlay = null!;
+        public event EventHandler<OPLInlay>? CloseInlay;
 
         #region Properties
 
@@ -88,12 +89,12 @@ namespace OPLAPI.OIEL.UserElementsControl
         }
         #endregion
 
-        #region Text
+        #region Title
         /// <summary>
         /// Данные конкретного свойства
         /// </summary>
-        public static readonly DependencyProperty TextProperty =
-            DependencyProperty.Register("Text", typeof(string), typeof(OPLInlay),
+        public static readonly DependencyProperty TitleProperty =
+            DependencyProperty.Register("Title", typeof(string), typeof(OPLInlay),
                 new(string.Empty,
                     (sender, e) =>
                     {
@@ -103,41 +104,49 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// <summary>
         /// Текст отображаемый в элементе вкладки
         /// </summary>
-        public string Text
+        public string Title
         {
-            get => (string)GetValue(TextProperty);
-            set => SetValue(TextProperty, value);
+            get => (string)GetValue(TitleProperty);
+            set => SetValue(TitleProperty, value);
+        }
+        #endregion
+
+        #region CloseButtonPalette
+        /// <summary>
+        /// Данные спектра использования цветов кнопки закрытия вкладки
+        /// </summary>
+        public PaletteData CloseButtonPalette
+        {
+            get => IELButtonCloseInlay.Palette;
+            set => IELButtonCloseInlay.Palette = value;
+        }
+        #endregion
+
+        #region CloseButtonSource
+        /// <summary>
+        /// Ссылка на элемент изображения кнопки закрытия вкладки
+        /// </summary>
+        public ImageSource CloseButtonSource
+        {
+            get => IELButtonCloseInlay.Source;
+            set => IELButtonCloseInlay.Source = value;
         }
         #endregion
 
         #endregion
-
-        /// <summary>
-        /// Страница которую содержит вкладка
-        /// </summary>
-        public readonly new PageBrowser Content;
 
         /// <summary>
         /// Инициализировать объект интерфейса, вкладка браузера
         /// </summary>
-        /// <param name="AppPageContent">Все компоненты которые находятся в данном приложении странице</param>
-        public OPLInlay(in PageBrowser AppPageContent)
+        public OPLInlay()
         {
             InitializeComponent();
-            Content = AppPageContent;
-            Text = AppPageContent.Title;
-
             TextBlockHead.Foreground = SourceForeground.SourceBrush;
 
             IELButtonCloseInlay.OnActivateMouseLeft += (sender, e) =>
             {
-                OnActivateCloseInlay.Invoke(sender, this);
+                CloseInlay?.Invoke(sender, this);
             };
         }
-
-        /// <summary>
-        /// Получить кнопку закрытия вкладки
-        /// </summary>
-        public IELButtonImage GetButtonCloseInlay() => IELButtonCloseInlay;
     }
 }

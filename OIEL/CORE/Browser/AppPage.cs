@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Windows;
 using System.Windows.Media;
 
 namespace OPLAPI.OIEL.CORE.Browser
@@ -33,11 +34,6 @@ namespace OPLAPI.OIEL.CORE.Browser
         }
 
         /// <summary>
-        /// Событие активации страничного приложения
-        /// </summary>
-        public event EventHandler<AppPage>? ApplicationPageActivate;
-
-        /// <summary>
         /// Инициализировать данные о страничном приложении
         /// </summary>
         /// <param name="SourceType">Тип страничного приложения</param>
@@ -45,7 +41,7 @@ namespace OPLAPI.OIEL.CORE.Browser
         {
             VisualELement = new();
             SetPropetriesFromObjectPage(SourceType);
-            VisualELement.OnActivateMouseLeft += (sender, e) => ApplicationPageActivate?.Invoke(VisualELement, this);
+            VisualELement.OnActivateMouseLeft += AppPage_Activate;
         }
 
         /// <summary>
@@ -54,7 +50,15 @@ namespace OPLAPI.OIEL.CORE.Browser
         protected internal AppPage() : base(typeof(PageBrowser))
         {
             VisualELement = new();
-            VisualELement.OnActivateMouseLeft += (sender, e) => ApplicationPageActivate?.Invoke(VisualELement, this);
+            VisualELement.OnActivateMouseLeft += AppPage_Activate;
+        }
+
+        /// <summary>
+        /// Обработчик события активации страничного приложения
+        /// </summary>
+        private void AppPage_Activate(object Source, System.Windows.Input.MouseButtonEventArgs eventArgs)
+        {
+            ActivateAppPage(Source as UIElement ?? throw new Exception("Невозможно преобразовать нажатую иконку страничного приложения"));
         }
 
         /// <summary>
@@ -75,12 +79,5 @@ namespace OPLAPI.OIEL.CORE.Browser
             TitlePage = (string?)PropetryTitle.GetValue(ElementPage) ?? "Неизвестный";
             VisualELement.Source = (ImageSource?)PropetryIcon.GetValue(ElementPage);
         }
-
-        /// <summary>
-        /// Инициализировать встроенное страничное приложение
-        /// </summary>
-        protected internal PageBrowser InicializeAppPage() =>
-            (PageBrowser?)Activator.CreateInstance(TypePage) ??
-            throw new Exception($"Неудалось создать экземпляр главной страницы страничного приложения \"{TypePage.FullName}\"");
     }
 }

@@ -21,11 +21,6 @@ namespace OPLAPI.OIEL.CORE.Browser
         private Assembly AssemblyPage;
 
         /// <summary>
-        /// Событие активации страничного приложения
-        /// </summary>
-        public new event EventHandler<InstallableAppPage>? ApplicationPageActivate;
-
-        /// <summary>
         /// Инициализировать данные о страничном приложении
         /// </summary>
         /// <remarks>
@@ -44,8 +39,6 @@ namespace OPLAPI.OIEL.CORE.Browser
             Type TypeMainPage = AssemplyTypesPage.FirstOrDefault((i) => i.BaseType == typeof(PageBrowser)) ??
                 throw new Exception("Неудалось получить тип главной страницы страничного приложения");
             SetPropetriesFromObjectPage(TypeMainPage, AssemblyPage);
-
-            VisualELement.OnActivateMouseLeft += (sender, e) => ApplicationPageActivate?.Invoke(VisualELement, this);
         }
     }
 }

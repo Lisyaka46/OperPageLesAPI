@@ -274,12 +274,12 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// <summary>
         /// Объект события активации левым щелчком мыши
         /// </summary>
-        public IELButtonBase.ActivateHandler? OnActivateMouseLeft { get; set; }
+        public event IELButtonBase.ActivateHandler? OnActivateMouseLeft;
 
         /// <summary>
         /// Объект события активации правым щелчком мыши
         /// </summary>
-        public IELButtonBase.ActivateHandler? OnActivateMouseRight { get; set; }
+        public event IELButtonBase.ActivateHandler? OnActivateMouseRight;
 
         /// <summary>
         /// Объект отображения фона
