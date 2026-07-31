@@ -25,7 +25,7 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// </summary>
         public static readonly new DependencyProperty IsEnabledProperty =
             DependencyProperty.Register("IsEnabled", typeof(bool), typeof(OPLInlay),
-                new(false,
+                new(true,
                     (sender, e) =>
                     {
                         ((IELButtonBase)sender).IsEnabled = (bool)e.NewValue;
@@ -39,7 +39,6 @@ namespace OPLAPI.OIEL.UserElementsControl
             get => (bool)base.GetValue(IsEnabledProperty);
             set
             {
-                if (Content == null && value) throw new Exception("Невозможно включить элемент не имея отображаемой страницы.");
                 base.SetValue(IELContainerBase.IsEnabledProperty, value);
             }
         }
@@ -146,6 +145,7 @@ namespace OPLAPI.OIEL.UserElementsControl
             IELButtonCloseInlay.OnActivateMouseLeft += (sender, e) =>
             {
                 CloseInlay?.Invoke(sender, this);
+                e.Handled = true;
             };
         }
     }

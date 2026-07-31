@@ -1,4 +1,5 @@
-﻿using OPLAPI.CORE.Animation;
+﻿using IEL.UserElementsControl;
+using OPLAPI.CORE.Animation;
 using OPLAPI.CORE.Browser;
 using OPLAPI.CORE.Interfaces;
 using OPLAPI.OIEL.CORE.Browser;
@@ -29,6 +30,7 @@ namespace OPLAPI.OIEL.UserElementsControl
             set
             {
                 MainPage?.ManagerAnimation = value;
+                Inlays.ForEach(i => i.ContentPage.ManagerAnimation = value);
                 _ManagerAnimation = value;
             }
         }
@@ -67,6 +69,16 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// </summary>
         private static readonly Exception ExceptionManagerAppPage =
             new($"Главная страница браузера не присвоена. {nameof(GenerateNewMainManagerAppPage)}()");
+
+        /// <summary>
+        /// Список установленных страничных приложений
+        /// </summary>
+        private List<Type> InstallAppPageTypes;
+
+        /// <summary>
+        /// Объект использования панели действий
+        /// </summary>
+        public IELPanelAction? SourcePanelAction { get; set; }
         #endregion
 
         /// <summary>
@@ -205,6 +217,7 @@ namespace OPLAPI.OIEL.UserElementsControl
             InitializeComponent();
             ActualIndex = -1;
             Inlays = [];
+            InstallAppPageTypes = [];
             StackPanelInlays = new()
             {
                 Orientation = System.Windows.Controls.Orientation.Horizontal,
@@ -225,24 +238,6 @@ namespace OPLAPI.OIEL.UserElementsControl
         }
 
         /// <summary>
-        /// Отобразить страницу выбора приложения страницы
-        /// </summary>
-        public void OpenMainPage()
-        {
-            if (ActivateMainPage) return;
-            else if (MainPage == null) throw ExceptionManagerAppPage;
-            ActivateMainPage = true;
-            if (ActualIndex > -1)
-            {
-                Inlays[ActualIndex].Visual.SourceBackground.UsedState = false;
-                ActualIndex = -1;
-            }
-            MainPageController.NextElement(MainPage, false);
-            MainPage.Focus();
-            MainPageActivated?.Invoke(null, EventArgs.Empty);
-        }
-
-        /// <summary>
         /// Создать новый экземпляр главной страницы для браузера
         /// </summary>
         /// <param name="TypeManagerAppPage"></param>
@@ -256,13 +251,15 @@ namespace OPLAPI.OIEL.UserElementsControl
             else
             {
                 MainPage = (MainPageBrowser)(Activator.CreateInstance(TypeManagerAppPage) ??
-                    throw new Exception("Не удалось создать объект главной страницы"));
+                    throw new InvalidOperationException("Не удалось создать объект главной страницы"));
                 MainPage.ManagerAnimation = ManagerAnimation;
+                MainPage.SourcePanelAction = SourcePanelAction;
                 MainPage.ApplicationPageActivated += ApplicationPageActivatedHandler;
                 InicializeMainPage = true;
             }
         }
 
+        #region Handlers
         /// <summary>
         /// Обработчик события активации страничного приложения из главной страницы браузера
         /// </summary>
@@ -299,63 +296,27 @@ namespace OPLAPI.OIEL.UserElementsControl
         /// <exception cref="NotImplementedException"></exception>
         private void InlayClosedHandler(object? sender, Inlay e)
         {
-            e.Visual.IsEnabled = false;
             DeleteInlayPage(e, ActualIndex == Inlays.IndexOf(e));
             InlayClosed?.Invoke(null, e);
         }
+        #endregion
 
         /// <summary>
-        /// Создать новый объект вкладки
+        /// Отобразить страницу выбора приложения страницы
         /// </summary>
-        /// <param name="Content">Страница содержимого вкладки</param>
-        private Inlay AddInlay(in PageBrowser Content)
+        public void OpenMainPage()
         {
-            Inlay InlayData = Inlay.InicializeInlay(Content);
-            Binding binding = new()
+            if (ActivateMainPage) return;
+            else if (MainPage == null) throw ExceptionManagerAppPage;
+            ActivateMainPage = true;
+            if (ActualIndex > -1)
             {
-                Mode = BindingMode.OneWay,
-                Source = (FontFamily)Application.Current.Resources["Bree CYR var"]
-            };
-            BindingOperations.SetBinding(InlayData.Visual, OPLInlay.FontFamilyProperty, binding);
-
-            Inlays.Add(InlayData);
-            StackPanelInlays.Children.Add(InlayData.Visual);
-
-            OPLAnimationManager.AnimateTakingZeroFromTo(ManagerAnimation, InlayData.Visual, WidthProperty,
-                0d, InlayData.Visual.ActualWidth, TimeSpan.FromMilliseconds(350d));
-            OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, InlayData.Visual, OpacityProperty,
-                1d, TimeSpan.FromMilliseconds(400d));
-            return InlayData;
-        }
-
-        /// <summary>
-        /// Открыть вкладку по индексу
-        /// </summary>
-        /// <param name="SourceIndex">Индекс открываемой вкладки</param>
-        public void ActivateInlay(int SourceIndex)
-        {
-            if (SourceIndex == ActualIndex && Inlays[SourceIndex].Visual.SourceBackground.UsedState) return;
-            else if (ActualIndex > -1 && Inlays.Count > ActualIndex)
-            {
-                Inlay BackInlay = Inlays[ActualIndex];
-                BackInlay.Visual.SourceBackground.UsedState = false;
+                Inlays[ActualIndex].Visual.SourceBackground.UsedState = false;
+                ActualIndex = -1;
             }
-            ActivateInlay(Inlays[SourceIndex], SourceIndex);
-        }
-
-        /// <summary>
-        /// Открыть вкладку по управляемому объекту
-        /// </summary>
-        /// <param name="Source">Открываемая вкладка</param>
-        /// <param name="Index">индекс вкладки</param>
-        private void ActivateInlay(Inlay Source, int Index)
-        {
-            if (ActivateMainPage) ActivateMainPage = false;
-            PageBrowser Page = Source.ContentPage;
-            Source.Visual.SourceBackground.UsedState = true;
-            MainPageController.NextElement(Page, Index >= ActualIndex);
-            ActualIndex = Index;
-            InlayActivated?.Invoke(null, Source);
+            MainPageController.NextElement(MainPage, false);
+            MainPage.Focus();
+            MainPageActivated?.Invoke(null, EventArgs.Empty);
         }
 
         /// <summary>
@@ -375,6 +336,82 @@ namespace OPLAPI.OIEL.UserElementsControl
             {
                 OpenMainPage();
             }
+        }
+
+        /// <summary>
+        /// Сделать поиск страницы по типу
+        /// </summary>
+        /// <returns>Найденная страница</returns>
+        public int? SearchInlayFromType(Type SourceType)
+        {
+            if (Inlays.Count == 0 || SourceType.BaseType != typeof(PageBrowser)) return null;
+            for (int i = 0; i < Inlays.Count; i++)
+            {
+                if (Inlays[i].ContentPage.GetType() == SourceType)
+                    return i;
+            }
+            return null;
+        }
+
+        #region AppPageControl
+        /// <summary>
+        /// Добавить на главную страницу новое страничное приложение
+        /// </summary>
+        /// <param name="TypeAppPage">Тип устанавливаемого страничного приложения, от <see cref="PageBrowser"/></param>
+        public void AddAppPage(Type TypeAppPage)
+        {
+            if (!InicializeMainPage || MainPage == null)
+                throw new InvalidOperationException(
+                "Невозможно добавить страничное приложение, так как главная страница в браузене не инициализирована " +
+                $"\"{nameof(GenerateNewMainManagerAppPage)}(Type)\"");
+            MainPage.AddNewAppPage(TypeAppPage);
+
+        }
+
+        /// <summary>
+        /// Добавить на главную страницу новое страничное приложение
+        /// </summary>
+        /// <param name="FilePath">Директория файла устанавливаемого страничного приложения</param>
+        public async Task AddAppPage(string FilePath)
+        {
+            if (!InicializeMainPage || MainPage == null)
+                throw new InvalidOperationException(
+                "Невозможно добавить страничное приложение, так как главная страница в браузене не инициализирована " +
+                $"\"{nameof(GenerateNewMainManagerAppPage)}(Type)\"");
+            await MainPage.AddNewAppPage(FilePath);
+
+        }
+        #endregion
+
+        #region Activates
+        /// <summary>
+        /// Открыть вкладку по индексу
+        /// </summary>
+        /// <param name="SourceIndex">Индекс открываемой вкладки</param>
+        public void ActivateInlay(int SourceIndex)
+        {
+            ActivateInlay(Inlays[SourceIndex], SourceIndex);
+        }
+
+        /// <summary>
+        /// Открыть вкладку по управляемому объекту
+        /// </summary>
+        /// <param name="Source">Открываемая вкладка</param>
+        /// <param name="Index">индекс вкладки</param>
+        private void ActivateInlay(Inlay Source, int Index)
+        {
+            if (Index == ActualIndex && Source.Visual.SourceBackground.UsedState) return;
+            else if (ActualIndex > -1 && Inlays.Count > ActualIndex)
+            {
+                Inlay BackInlay = Inlays[ActualIndex];
+                BackInlay.Visual.SourceBackground.UsedState = false;
+            }
+            else if (ActivateMainPage) ActivateMainPage = false;
+            PageBrowser Page = Source.ContentPage;
+            Source.Visual.SourceBackground.UsedState = true;
+            MainPageController.NextElement(Page, Index >= ActualIndex);
+            ActualIndex = Index;
+            InlayActivated?.Invoke(null, Source);
         }
 
         /// <summary>
@@ -398,21 +435,35 @@ namespace OPLAPI.OIEL.UserElementsControl
                 ActualIndex = -1;
             }
             MainPageController.NextElement(SourcePage, RightAlign);
+            CustomPageActivated?.Invoke(null, EventArgs.Empty);
         }
+        #endregion
 
+        #region InlayControl
         /// <summary>
-        /// Сделать поиск страницы по типу
+        /// Создать новый объект вкладки
         /// </summary>
-        /// <returns>Найденная страница</returns>
-        public int? SearchInlayFromType(Type SourceType)
+        /// <param name="Content">Страница содержимого вкладки</param>
+        private Inlay AddInlay(in PageBrowser Content)
         {
-            if (Inlays.Count == 0 || SourceType.BaseType != typeof(PageBrowser)) return null;
-            for (int i = 0; i < Inlays.Count; i++)
+            Content.ManagerAnimation = ManagerAnimation;
+            Inlay InlayData = Inlay.InicializeInlay(Content);
+            Binding binding = new()
             {
-                if (Inlays[i].ContentPage.GetType() == SourceType)
-                    return i;
-            }
-            return null;
+                Mode = BindingMode.OneWay,
+                Source = (FontFamily)Application.Current.Resources["Bree CYR var"]
+            };
+            BindingOperations.SetBinding(InlayData.Visual, OPLInlay.FontFamilyProperty, binding);
+
+            Inlays.Add(InlayData);
+            StackPanelInlays.Children.Add(InlayData.Visual);
+            InlayData.Visual.UpdateLayout();
+
+            OPLAnimationManager.AnimateTakingZeroFromTo(ManagerAnimation, InlayData.Visual, WidthProperty,
+                0d, InlayData.Visual.ActualWidth, TimeSpan.FromMilliseconds(350d));
+            OPLAnimationManager.AnimateTakingZeroTo(ManagerAnimation, InlayData.Visual, OpacityProperty,
+                1d, TimeSpan.FromMilliseconds(400d));
+            return InlayData;
         }
 
         /// <summary>
@@ -467,6 +518,7 @@ namespace OPLAPI.OIEL.UserElementsControl
             }
             else if (ActualIndex >= Index) ActualIndex--;
         }
+        #endregion
 
         /// <summary>
         /// Узнать следующий индекс элемента

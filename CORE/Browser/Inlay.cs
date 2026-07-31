@@ -146,6 +146,7 @@ namespace OPLAPI.CORE.Browser
                     Opacity = 0d,
                     IsAnimatedSettingQ = false,
                     IsEnabledSettingQ = false,
+                    IsEnabled = true,
                 },
                 ContentPage = Content,
                 Title = Content.Title,
@@ -191,6 +192,7 @@ namespace OPLAPI.CORE.Browser
         private void Inlay_Activated(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             OPLInlay Element = (OPLInlay)sender;
+            if (!Element.IsEnabled) return;
             Element.SourceBackground.UsedState = true;
             Activated?.Invoke(sender, this);
         }
@@ -216,10 +218,9 @@ namespace OPLAPI.CORE.Browser
         /// </summary>
         private void Inlay_Closed(object? sender, OPLInlay e)
         {
-            OPLInlay Element = (OPLInlay?)sender ??
-                throw new InvalidOperationException("Невозможно преобразовать ожидаемый объект");
-            Element.SourceBackground.UsedState = false;
-            Element.IsEnabled = false;
+            e.SourceBackground.UsedState = false;
+            e.IsEnabled = false;
+            Closed?.Invoke(sender, this);
         }
     }
 }
