@@ -68,7 +68,7 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// Добавить отображение иконки в менеджере приложений страниц
         /// </summary>
         /// <param name="TypeAppPage">Тип создаваемого приложения страницы</param>
-        public virtual AppPage AddNewAppPage(Type TypeAppPage)
+        internal AppPage AddNewAppPage(Type TypeAppPage)
         {
             AppPage Source = new(TypeAppPage);
             if (DefaultIconAppPage != null && Source.VisualELement.Source == null)
@@ -83,9 +83,9 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// Добавить отображение иконки в менеджере приложений страниц
         /// </summary>
         /// <param name="Path">Директория к установочному файлу страничного приложения</param>
-        public virtual InstallableAppPage AddNewAppPage(string Path)
+        internal async Task<InstallableAppPage> AddNewAppPage(string Path)
         {
-            InstallableAppPage Source = new(Path);
+            InstallableAppPage Source = await InstallableAppPage.GetInstallableAppPage(Path);
             if (DefaultIconAppPage != null && Source.VisualELement.Source == null)
                 Source.VisualELement.Source = DefaultIconAppPage;
             SourceAppPages.Add(Source);
@@ -98,7 +98,7 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// Установить начальные значения для визуального элемента страничного приложения
         /// </summary>
         /// <param name="VisualAppPage">Визуальный элемент страничного приложения</param>
-        private void SetVisualInit(OPLVisualElementIM VisualAppPage)
+        internal void SetVisualInit(OPLVisualElementIM VisualAppPage)
         {
             VisualAppPage.ManagerAnimation = ManagerAnimation;
             VisualAppPage.Width = ConstSizeIconsAppPages.Width;

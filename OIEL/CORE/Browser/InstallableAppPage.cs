@@ -16,29 +16,49 @@ namespace OPLAPI.OIEL.CORE.Browser
     public sealed class InstallableAppPage : AppPage
     {
         /// <summary>
-        /// Сборка страничного рпиложения
+        /// Инициализировать пустой объект устанавливаемого приложения
         /// </summary>
-        private Assembly AssemblyPage;
+        private InstallableAppPage()
+        {
+
+        }
 
         /// <summary>
         /// Инициализировать данные о страничном приложении
         /// </summary>
         /// <remarks>
-        /// Установочный файл должен быть файлом .dll, который содержит в себе тип, наследуемый от PageBrowser.<br/>
+        /// Установочный файл должен быть файлом .dll, который содержит в себе тип, наследуемый от <see cref="PageBrowser"/><br/>
         /// Он будет являться главной страницей страничного приложения.<br/>
-        /// Свойства Title и Icon главной страницы будут использоваться для отображения информации об устанавливаемом страничном приложении в менеджере приложений страниц OPL.
+        /// Свойства <see cref="PageBrowser.Title"/> и <see cref="PageBrowser.Icon"/> будут использоваться для отображения информации об устанавливаемом страничном приложении
         /// </remarks>
         /// <param name="SourcePath">Директория к файлу станичного приложения .dll</param>
-        public InstallableAppPage(string SourcePath) : base()
+        public static async Task<InstallableAppPage> GetInstallableAppPage(string SourcePath)
         {
             if (!File.Exists(SourcePath) || !Path.GetExtension(SourcePath).Equals(".dll"))
                 throw new FileNotFoundException("Данный файл не найден или его расширение не подходит под устанавливаемое страничное приложение .dll ...");
+            Type SourceType = GetTypeAppPage(await File.ReadAllBytesAsync(SourcePath), out Assembly SourceAssembly);
+            InstallableAppPage AppPage = new();
+            AppPage.SetPropetriesFromObjectPage(SourceType, SourceAssembly);
+            return AppPage;
+        }
 
-            AssemblyPage = Assembly.LoadFrom(SourcePath);
-            Type[] AssemplyTypesPage = [.. AssemblyPage.ExportedTypes];
-            Type TypeMainPage = AssemplyTypesPage.FirstOrDefault((i) => i.BaseType == typeof(PageBrowser)) ??
-                throw new NullReferenceException("Неудалось получить тип главной страницы страничного приложения");
-            SetPropetriesFromObjectPage(TypeMainPage, AssemblyPage);
+        /// <summary>
+        /// Получить тип устанавливаемого страничного приложения<br/>
+        /// Унаследованный от <see cref="PageBrowser"/>
+        /// </summary>
+        /// <param name="SourceData">Данные файла dll</param>
+        /// <param name="OutAssembly">Сборка файла</param>
+        private static Type GetTypeAppPage(byte[] SourceData, out Assembly OutAssembly)
+        {
+            OutAssembly = Assembly.Load(SourceData);
+            Type[] PageBrowserExportedTypes = [.. OutAssembly.ExportedTypes.Where((i) => i.BaseType == typeof(PageBrowser))];
+            if (PageBrowserExportedTypes.Length == 0)
+                throw new InvalidOperationException("Неудалось получить тип главной страницы страничного приложения");
+            else if (PageBrowserExportedTypes.Length > 1)
+                throw new InvalidOperationException(
+                    $"Загружаемое страничное приложение содержит множество типов наследованных от \"{nameof(PageBrowser)}\".\n" +
+                    $"В загружаемом страничном приложении должен быть только один тип \"{nameof(PageBrowser)}\"");
+            return PageBrowserExportedTypes[0];
         }
     }
 }
