@@ -18,12 +18,12 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// <summary>
         /// Массив всех страничных приложений подключённых к начальной странице
         /// </summary>
-        private List<AppPage> SourceAppPages = [];
+        private List<AppPageBase> SourceAppPages = [];
 
         /// <summary>
         /// Массив всех страничных приложений доступный только для чтения
         /// </summary>
-        ReadOnlyCollection<AppPage> IMainPageBrowser.AppPages => SourceAppPages.AsReadOnly();
+        ReadOnlyCollection<AppPageBase> IMainPageBrowser.AppPages => SourceAppPages.AsReadOnly();
 
         /// <summary>
         /// Иконка по умолчанию для страничных приложений
@@ -42,6 +42,11 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// </summary>
         public readonly System.Windows.Size ConstSizeIconsAppPages;
         #endregion
+
+        /// <summary>
+        /// Событие активации страничного приложения
+        /// </summary>
+        internal event EventHandler<AppPageBase>? ApplicationPageActivated;
 
         /// <summary>
         /// Инициализировать базовый класс главной страницы браузера
@@ -70,6 +75,7 @@ namespace OPLAPI.OIEL.CORE.Browser
                 Source.VisualELement.Source = DefaultIconAppPage;
             SourceAppPages.Add(Source);
             SetVisualInit(Source.VisualELement);
+            Source.ApplicationPageClick += ApplicationPageClickHandler;
             return Source;
         }
 
@@ -77,13 +83,14 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// Добавить отображение иконки в менеджере приложений страниц
         /// </summary>
         /// <param name="Path">Директория к установочному файлу страничного приложения</param>
-        public InstallableAppPage AddNewAppPage(string Path)
+        public virtual InstallableAppPage AddNewAppPage(string Path)
         {
             InstallableAppPage Source = new(Path);
             if (DefaultIconAppPage != null && Source.VisualELement.Source == null)
                 Source.VisualELement.Source = DefaultIconAppPage;
             SourceAppPages.Add(Source);
             SetVisualInit(Source.VisualELement);
+            Source.ApplicationPageClick += ApplicationPageClickHandler;
             return Source;
         }
 
@@ -101,5 +108,13 @@ namespace OPLAPI.OIEL.CORE.Browser
             MainPanelAllApplicationPages.Children.Add(VisualAppPage);
         }
         #endregion
+        
+        /// <summary>
+        /// Обработчик события нажатия на страничное приложение
+        /// </summary>
+        private void ApplicationPageClickHandler(object? sender, AppPageBase e)
+        {
+            ApplicationPageActivated?.Invoke(this, e);
+        }
     }
 }

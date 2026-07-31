@@ -1,4 +1,5 @@
 ﻿using OPLAPI.OIEL.CORE.Browser;
+using OPLAPI.OIEL.CORE.Browser.Base;
 using System.Collections.ObjectModel;
 
 namespace OPLAPI.OIEL.CORE.Interfaces.Browser
@@ -14,6 +15,6 @@ namespace OPLAPI.OIEL.CORE.Interfaces.Browser
         /// <summary>
         /// Массив всех страничных приложений доступный только для чтения
         /// </summary>
-        internal abstract ReadOnlyCollection<AppPage> AppPages { get; }
+        internal abstract ReadOnlyCollection<AppPageBase> AppPages { get; }
     }
 }

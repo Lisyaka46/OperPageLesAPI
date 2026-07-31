@@ -18,9 +18,9 @@ namespace OPLAPI.OIEL.CORE.Browser.Base
         public Type TypePage { get; protected set; }
 
         /// <summary>
-        /// Событие активации страничного приложения
+        /// Событие нажатия на страничное приложение
         /// </summary>
-        public event EventHandler<Type>? ApplicationPageActivate;
+        internal event EventHandler<AppPageBase>? ApplicationPageClick;
 
         /// <summary>
         /// Исключение недопустимого типа для создания страничного приложения
@@ -44,7 +44,7 @@ namespace OPLAPI.OIEL.CORE.Browser.Base
         /// <param name="Visual">Элемент интерфейса отображения страничного приложения</param>
         protected void ActivateAppPage(UIElement Visual)
         {
-            ApplicationPageActivate?.Invoke(Visual, TypePage);
+            ApplicationPageClick?.Invoke(Visual, this);
         }
 
         /// <summary>
@@ -58,12 +58,12 @@ namespace OPLAPI.OIEL.CORE.Browser.Base
         /// <summary>
         /// Инициализировать встроенное страничное приложение
         /// </summary>
-        internal static PageBrowser InicializeAppPage(Type SourceTypePageBrowser)
+        public PageBrowser InicializeAppPage()
         {
-            if (SourceTypePageBrowser.BaseType != typeof(PageBrowser))
+            if (TypePage.BaseType != typeof(PageBrowser))
                 throw new ArgumentException("Не верный входной тип для создания объекта для представления страничного приложения");
-            return (PageBrowser?)Activator.CreateInstance(SourceTypePageBrowser) ??
-                throw new InvalidOperationException($"Неудалось создать экземпляр главной страницы страничного приложения \"{SourceTypePageBrowser.FullName}\"");
+            return (PageBrowser?)Activator.CreateInstance(TypePage) ??
+                throw new InvalidOperationException($"Неудалось создать экземпляр главной страницы страничного приложения \"{TypePage.FullName}\"");
         }
     }
 }

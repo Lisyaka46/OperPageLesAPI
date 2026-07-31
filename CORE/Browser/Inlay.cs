@@ -61,12 +61,14 @@ namespace OPLAPI.CORE.Browser
                     value.MouseLeftButtonUp += Inlay_Activated;
                     value.CloseInlay += Inlay_Closed;
                     value.MouseHover += Inlay_MouseHover;
+                    value.MouseLeave += Inlay_MouseLeave;
                 }
                 if (_Visual != null)
                 {
                     _Visual.MouseLeftButtonUp -= Inlay_Activated;
                     _Visual.CloseInlay -= Inlay_Closed;
                     _Visual.MouseHover -= Inlay_MouseHover;
+                    _Visual.MouseLeave -= Inlay_MouseLeave;
                 }
                 _Visual = value;
             }
@@ -99,12 +101,17 @@ namespace OPLAPI.CORE.Browser
         /// <summary>
         /// Событие активации вкладки
         /// </summary>
-        public event EventHandler<Inlay>? Activated;
+        internal event EventHandler<Inlay>? Activated;
 
         /// <summary>
         /// Событие задержки мыши на элементе вкладки
         /// </summary>
         public event EventHandler<Inlay>? MouseHover;
+
+        /// <summary>
+        /// Событие скрытия мыши с элемента вкладки
+        /// </summary>
+        public event EventHandler<Inlay>? MouseLeave;
 
         /// <summary>
         /// Событие закрытия вкладки
@@ -129,7 +136,6 @@ namespace OPLAPI.CORE.Browser
         {
             Inlay Result = new()
             {
-                Title = Content.Title,
                 Visual = new()
                 {
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch,
@@ -142,6 +148,7 @@ namespace OPLAPI.CORE.Browser
                     IsEnabledSettingQ = false,
                 },
                 ContentPage = Content,
+                Title = Content.Title,
             };
             return Result;
         }
@@ -160,6 +167,7 @@ namespace OPLAPI.CORE.Browser
                 Visual.MouseLeftButtonUp -= Inlay_Activated;
                 Visual.CloseInlay -= Inlay_Closed;
                 Visual.MouseHover -= Inlay_MouseHover;
+                Visual.MouseLeave -= Inlay_MouseLeave;
             }
             GC.SuppressFinalize(this);
         }
@@ -193,6 +201,14 @@ namespace OPLAPI.CORE.Browser
         private void Inlay_MouseHover(object? sender, EventArgs e)
         {
             MouseHover?.Invoke(sender, this);
+        }
+
+        /// <summary>
+        /// Обработчик события скрытия мыши с элемента
+        /// </summary>
+        private void Inlay_MouseLeave(object? sender, EventArgs e)
+        {
+            MouseLeave?.Invoke(sender, this);
         }
 
         /// <summary>
