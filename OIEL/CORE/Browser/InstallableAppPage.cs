@@ -32,11 +32,14 @@ namespace OPLAPI.OIEL.CORE.Browser
         /// Свойства <see cref="PageBrowser.Title"/> и <see cref="PageBrowser.Icon"/> будут использоваться для отображения информации об устанавливаемом страничном приложении
         /// </remarks>
         /// <param name="SourcePath">Директория к файлу станичного приложения .dll</param>
-        public static async Task<InstallableAppPage> GetInstallableAppPage(string SourcePath)
+        /// <param name="SourceToken">Токен для управления отмены производимой операции</param>
+        public static async Task<InstallableAppPage> GetInstallableAppPage(string SourcePath, CancellationToken SourceToken = default)
         {
             if (!File.Exists(SourcePath) || !Path.GetExtension(SourcePath).Equals(".dll"))
                 throw new FileNotFoundException("Данный файл не найден или его расширение не подходит под устанавливаемое страничное приложение .dll ...");
-            Type SourceType = GetTypeAppPage(await File.ReadAllBytesAsync(SourcePath), out Assembly SourceAssembly);
+            SourceToken.ThrowIfCancellationRequested();
+            Type SourceType = GetTypeAppPage(await File.ReadAllBytesAsync(SourcePath, SourceToken), out Assembly SourceAssembly);
+            SourceToken.ThrowIfCancellationRequested();
             InstallableAppPage AppPage = new();
             AppPage.SetPropetriesFromObjectPage(SourceType, SourceAssembly);
             return AppPage;
