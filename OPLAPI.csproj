@@ -10,7 +10,7 @@
 	<PlatformTarget>x64</PlatformTarget>
 	<PackageId>OPLAPI</PackageId>
 	<Title>OperPageLesAPI</Title>
-	<Version>1.0.7</Version>
+	<Version>1.1.1</Version>
 	<Description>API для взаимодействия с системой OperPageLes</Description>
 	<PackageIcon>API.png</PackageIcon>
 	<PackageTags>WPF;OPL;Library;API</PackageTags>
